@@ -4,4 +4,12 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "aws-cdk-lib>=2.179.0",
+    "constructs>=10.4.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
