@@ -7,13 +7,23 @@ requires-python = ">=3.12"
 dependencies = [
     "aws-cdk-lib>=2.179.0",
     "constructs>=10.4.2",
+    "dotenv>=0.9.9",
+    "pydantic>=2.10.6",
+    "requests>=2.32.3",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = "."
 
 [dependency-groups]
 dev = [
+    "black>=25.1.0",
+    "pre-commit>=4.1.0",
     "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
     "ruff>=0.9.6",
 ]
 
 [tool.ruff]
 line-length = 88
+lint.extend-select = ["I", "W292"]
