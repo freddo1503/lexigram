@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aws-cdk-lib>=2.179.0",
+    "aws-lambda-powertools>=3.6.0",
+    "aws-xray-sdk>=2.14.0",
     "constructs>=10.4.2",
     "dotenv>=0.9.9",
     "pydantic>=2.10.6",

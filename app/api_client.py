@@ -58,7 +58,6 @@ class APIClient:
         Returns:
             str: A valid access token.
         """
-        logger.info("Requesting access token...")
         payload: t.Dict[str, t.Any] = {
             "grant_type": "client_credentials",
             "client_id": self._client_id,
@@ -84,7 +83,6 @@ class APIClient:
         # Cache the token expiry; subtract a safety margin (e.g., 60 seconds)
         expires_in = token_data.get("expires_in", 3600)
         self.token_expiry = time.time() + expires_in - 60
-        logger.info("Access token retrieved successfully.")
         return token_data.get("access_token")
 
     def _ensure_token(self) -> None:
@@ -106,15 +104,14 @@ class APIClient:
         self,
         method: str,
         endpoint: str,
-        payload: t.Optional[t.Dict[str, t.Any]] = None,
+        payload: t.Optional[str] = None,
         params: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Dict[str, t.Any]:
+    ) -> requests.Response:
         """
         Send an HTTP request and return the JSON response.
         """
         self._ensure_token()  # Refresh token if necessary
         url = self._build_url(endpoint)
-        logger.info("Requesting %s %s", method.upper(), url)
         response = self.session.request(method, url, json=payload, params=params)
         try:
             response.raise_for_status()
@@ -144,7 +141,6 @@ class APIClient:
         """
         self._ensure_token()  # Refresh token if necessary
         url = self._build_url(endpoint)
-        logger.info("Requesting GET %s", url)
         response = self.session.get(url, params=params)
 
         try:
@@ -155,9 +151,14 @@ class APIClient:
     def post(
         self,
         endpoint: str,
-        payload: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Dict[str, t.Any]:
+        payload: t.Optional[str] = None,
+    ) -> requests.Response:
         """
         Perform a POST request.
         """
+        self.session.headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.token}",
+        }
         return self.request("POST", endpoint, payload=payload)
