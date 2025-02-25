@@ -94,6 +94,15 @@ wheels = [
 ]
 
 [[package]]
+name = "aws-lambda-typing"
+version = "2.20.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/2a/14e7a3dba738265db6eddfd0c9ec1619c0c14e48fcf70627fc75fca83305/aws-lambda-typing-2.20.0.tar.gz", hash = "sha256:78b0d8ebab73b3a6b0da98a7969f4e9c4bb497298ec50f3217da8a8dfba17154", size = 19413 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/3d/4031f5950d65e89136d20a18b5ac985d5f087c29c902f285b6e8063619e4/aws_lambda_typing-2.20.0-py3-none-any.whl", hash = "sha256:1d44264cabfeab5ac38e67ddd0c874e677b2cbbae77a42d0519df470e6bbb49b", size = 35296 },
+]
+
+[[package]]
 name = "aws-xray-sdk"
 version = "2.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -343,6 +352,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "aws-cdk-lib" },
     { name = "aws-lambda-powertools" },
+    { name = "aws-lambda-typing" },
     { name = "aws-xray-sdk" },
     { name = "constructs" },
     { name = "dotenv" },
@@ -363,6 +373,7 @@ dev = [
 requires-dist = [
     { name = "aws-cdk-lib", specifier = ">=2.179.0" },
     { name = "aws-lambda-powertools", specifier = ">=3.6.0" },
+    { name = "aws-lambda-typing", specifier = ">=2.20.0" },
     { name = "aws-xray-sdk", specifier = ">=2.14.0" },
     { name = "constructs", specifier = ">=10.4.2" },
     { name = "dotenv", specifier = ">=0.9.9" },
