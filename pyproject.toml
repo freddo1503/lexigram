@@ -11,6 +11,7 @@ dependencies = [
     "aws-xray-sdk>=2.14.0",
     "constructs>=10.4.2",
     "crewai>=0.102.0",
+    "crewai-tools>=0.36.0",
     "dotenv>=0.9.9",
     "pydantic>=2.10.6",
     "requests>=2.32.3",
@@ -31,3 +32,9 @@ dev = [
 [tool.ruff]
 line-length = 88
 lint.extend-select = ["I", "W292"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

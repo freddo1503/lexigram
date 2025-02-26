@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from app.models import loda
@@ -9,17 +10,20 @@ def test_fetch_loda_list_integration(api_client):
     """Integration test for fetch_loda_list function."""
 
     request_payload = loda.RequestPayload(
-        sort="PUBLICATION_DATE_ASC",
-        legalStatus=["VIGUEUR", "ABROGE", "VIGUEUR_DIFF"],
+        sort="PUBLICATION_DATE_DESC",
+        legalStatus=["VIGUEUR"],
         pageNumber=1,
-        natures=["LOI", "ORDONNANCE", "DECRET"],
-        secondSort="PUBLICATION_DATE_ASC",
-        signatureDate=DateRange(start=date(2016, 1, 1), end=date(2016, 12, 31)),
+        natures=["LOI"],
+        secondSort="PUBLICATION_DATE_DESC",
+        signatureDate=DateRange(
+            start=date(date.today().year, 1, 1), end=date(date.today().year, 12, 31)
+        ),
         pageSize=10,
-        publicationDate=DateRange(start=date(2016, 1, 1), end=date(2016, 12, 31)),
     )
 
     loda_list = fetch_loda_list(api_client=api_client, payload=request_payload)
+
+    print(json.dumps(loda_list.model_dump(mode="json"), indent=4))
 
     assert isinstance(loda_list, loda.ResponsePayload)
     assert isinstance(loda_list.executionTime, int)

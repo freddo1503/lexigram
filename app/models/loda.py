@@ -19,7 +19,7 @@ class RequestPayload(BaseModel):
     secondSort: str
     signatureDate: Optional[DateRange] = None
     pageSize: int
-    publicationDate: DateRange
+    publicationDate: Optional[DateRange] = None
 
 
 # Model for an individual result item in the response
