@@ -1,8 +1,3 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
 def test_ping_endpoint(api_client):
     """
     Integration test for the ping endpoint. It verifies that the /consult/ping endpoint returns 'pong'.

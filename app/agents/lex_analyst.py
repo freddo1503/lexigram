@@ -1,9 +1,6 @@
 import os
 
 from crewai import LLM, Agent
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class AnalysteJuridique(Agent):

@@ -1,6 +1,10 @@
 import os
 
+import dotenv
+
 from app.api_client import APIClient
+
+dotenv.load_dotenv()
 
 api_client = APIClient(
     base_url=os.environ["BASE_URL"],
