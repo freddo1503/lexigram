@@ -8,7 +8,8 @@ def fetch_legi_consult(
     """Fetch the consultation result for a given legal text."""
 
     response = api_client.post(
-        endpoint="/consult/legiPart", payload=payload.model_dump(mode="json")
+        endpoint="/consult/legiPart",
+        payload=payload.model_dump(mode="json", exclude_none=True),
     )
 
     return LegiConsultResponse.model_validate(response)
