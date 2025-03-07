@@ -14,7 +14,7 @@ class LexPictor(Agent):
         super().__init__(
             role="Artiste Visuel Innovant",
             goal=(
-                "Créer des œuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées, "
+                "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées, "
                 "visant à évoquer des émotions profondes et à communiquer des concepts complexes de manière accessible et esthétique."
             ),
             backstory=(

@@ -1,5 +1,7 @@
 from crewai import Task
 
+from app.models.content import Image, Text
+
 
 def get_task_description():
     return (
@@ -25,6 +27,7 @@ def get_expected_output():
 text_summary = Task(
     description=get_task_description(),
     expected_output=get_expected_output(),
+    output_pydantic=Text,
     agent=None,
 )
 
@@ -43,4 +46,5 @@ image_generation = Task(
     ),
     context=[text_summary],
     agent=None,
+    output_pydantic=Image,
 )
