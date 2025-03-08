@@ -15,3 +15,4 @@ api_client = APIClient(
 
 open_api_key = os.environ["OPENAI_API_KEY"]
 mistral_api_key = os.environ["MISTRAL_API_KEY"]
+access_token = os.environ["ACCESS_TOKEN"]
