@@ -48,3 +48,19 @@ image_generation = Task(
     agent=None,
     output_pydantic=Image,
 )
+
+caption = Task(
+    description=(
+        "Convert a detailed legal analysis into a clear and engaging Instagram post. "
+        "Ensure the content is concise, easy to understand, and structured for readability. "
+        "Do not use bold, italics, asterisks, or any special formatting—just plain text."
+    ),
+    expected_output=(
+        "An Instagram-ready text with key takeaways, bullet points, or a carousel-friendly breakdown. "
+        "The content should be legally accurate, engaging, and accessible to a broad audience, formatted strictly in plain text."
+    ),
+    context=[text_summary],
+    agent=None,
+    output_pydantic=Text,
+    async_execution=False,
+)
