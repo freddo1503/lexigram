@@ -1,9 +1,11 @@
-import json
+import os
 
 from crew import create_crew
 
 from app.agents.tools import fetch_latest_law
 from app.config import api_client
+
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 
 def main():
