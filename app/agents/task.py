@@ -1,7 +1,5 @@
 from crewai import Task
 
-from app.models.content import Image, Text
-
 
 def get_task_description():
     return (
@@ -38,15 +36,9 @@ image_generation = Task(
         "clarity and accessibility for a non-expert audience. Do no include any details related "
         "to specific countries, such as flags or country names."
     ),
-    expected_output=(
-        "A high-quality, visually engaging image that aligns with the summarized legal text. "
-        "The design should be clear, professional, and optimized for Instagram, ensuring readability "
-        "and accessibility for a general audience. The image must not include country-specific details, "
-        "such as flags or country names."
-    ),
+    expected_output="{image_url: }",
     context=[text_summary],
     agent=None,
-    output_pydantic=Image,
 )
 
 caption = Task(
@@ -61,6 +53,5 @@ caption = Task(
     ),
     context=[text_summary],
     agent=None,
-    output_pydantic=Text,
     async_execution=False,
 )
