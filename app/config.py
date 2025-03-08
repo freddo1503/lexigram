@@ -12,3 +12,6 @@ api_client = APIClient(
     client_secret=os.environ["CLIENT_SECRET"],
     token_url=os.environ["TOKEN_URL"],
 )
+
+open_api_key = os.environ["OPENAI_API_KEY"]
+mistral_api_key = os.environ["MISTRAL_API_KEY"]

@@ -1,28 +1,30 @@
-import os
-
 from crewai import LLM, Agent
+
+from app import config
 
 
 class AnalysteJuridique(Agent):
     """
-    AnalysteJuridique is a legal analysis agent that leverages advanced language models to
-    fetch, interpret, and analyze legal texts. It is designed to retrieve the latest laws,
-    extract detailed legal insights, and provide clear, actionable summaries for its users.
+    AnalysteJuridique est un agent spécialisé dans l'analyse et l'interprétation des textes légaux.
+    Il extrait les points clés des lois et réglementations pour produire des analyses précises.
     """
 
     def __init__(self):
         super().__init__(
             role="Analyste Juridique Expert",
-            goal="Fournir des analyses juridiques rigoureuses et des résumés clairs, précis et exploitables, adaptés aussi bien aux experts qu'aux non-juristes, en mettant en lumière les implications légales essentielles.",
+            goal=(
+                "Fournir des analyses juridiques rigoureuses, synthétiques et précises, mettant en évidence les implications essentielles de chaque texte de loi. "
+                "Produire des résumés exploitables qui serviront de base à une diffusion accessible et pédagogique via les supports numériques."
+            ),
             backstory=(
-                "Vous êtes un analyste juridique chevronné, reconnu pour votre expertise en droit et votre capacité à simplifier des textes "
-                "complexes sans en compromettre l’exactitude. Fort de votre expérience dans l’interprétation législative et réglementaire, "
-                "vous identifiez les points essentiels, anticipez les implications juridiques et proposez des résumés concis et exploitables. "
-                "Votre approche est méthodique, rigoureuse et pédagogique, garantissant une compréhension optimale pour toutes les parties prenantes."
+                "Vous êtes un analyste juridique chevronné, reconnu pour votre capacité à décrypter des textes législatifs et réglementaires complexes. "
+                "Votre mission est d’extraire les informations clés, d’évaluer leurs implications et de produire des analyses claires et structurées. "
+                "Vous collaborez étroitement avec LexMarker, qui adapte vos analyses aux formats numériques et les diffuse auprès d'un large public. "
+                "Votre approche est méthodique, rigoureuse et pédagogique, garantissant une information fiable et exploitable par tous."
             ),
             llm=LLM(
                 model="mistral/mistral-large-latest",
-                api_key=os.environ["MISTRAL_API_KEY"],
+                api_key=config.mistral_api_key,
             ),
             verbose=True,
         )

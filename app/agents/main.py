@@ -1,7 +1,6 @@
 import os
 
-from crew import create_crew
-
+from app.agents.crew import create_crew
 from app.agents.tools import fetch_latest_law
 from app.config import api_client
 
@@ -25,9 +24,9 @@ def main():
         }
     )
 
-    image_data = json.loads(resume.tasks_output[1].raw)
-    print("\nIMAGE_URL: ", image_data["image_url"])
-    print("\nTEXT_URL: ", resume.tasks_output[0].raw)
+    print(resume.tasks_output[0].raw)
+    print(resume.tasks_output[1].raw)
+    print(resume.tasks_output[2].raw)
 
 
 # Ensure this script runs directly

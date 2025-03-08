@@ -1,7 +1,7 @@
-import os
-
 from crewai import LLM, Agent
 from crewai_tools import DallETool
+
+from app import config
 
 
 class LexPictor(Agent):
@@ -23,7 +23,7 @@ class LexPictor(Agent):
                 "LexPictor fusionne créativité artistique et innovation technologique pour explorer de nouveaux horizons visuels. Son travail est reconnu pour sa capacité "
                 "à transformer des idées abstraites en représentations visuelles tangibles, engageant un large public et suscitant réflexion et admiration."
             ),
-            llm=LLM(model="gpt-4", api_key=os.environ["OPENAI_API_KEY"]),
+            llm=LLM(model="gpt-4", api_key=config.open_api_key),
             tools=[DallETool()],
             allow_delegation=False,
             verbose=True,

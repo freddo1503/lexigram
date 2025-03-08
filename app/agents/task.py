@@ -5,31 +5,31 @@ from app.models.content import Image, Text
 
 def get_task_description():
     return (
-        "Analyser le texte juridique suivant et fournir un résumé court, clair et "
-        "accessible aux non-juristes, au format optimisé pour Instagram. Le résumé doit inclure:\n"
-        "1. {titre}\n"
-        "2. Date de publication: {date_publication}\n"
-        "3. Signataires officiels: {signataires}\n"
-        "4. Synthèse des principaux points: {contenu}"
+        "Analyser le texte juridique fourni et produire un résumé structuré sans omettre d’informations essentielles. "
+        "Le résumé doit conserver l’intégralité des éléments clés tout en étant clair et bien organisé. Il doit inclure :\n"
+        "1. Titre officiel du texte juridique : {titre}\n"
+        "2. Date de publication (format : jour mois année) : {date_publication}\n"
+        "3. Signataires officiels : {signataires}\n"
+        "4. Synthèse détaillée des principaux points sans altération du contenu : {contenu}"
     )
 
 
 def get_expected_output():
     return (
-        "Résumé simplifié comprenant : "
-        "- Titre du texte juridique, "
-        "- Date de publication, "
-        "- Signataires, "
-        "- Synthèse claire et accessible des principaux points."
+        "Un résumé structuré comprenant :\n"
+        "- Le titre officiel du texte juridique\n"
+        "- La date de publication au format jour mois année\n"
+        "- La liste des signataires officiels\n"
+        "- Une synthèse détaillée des principaux points, sans omission ni simplification excessive."
     )
 
 
 text_summary = Task(
     description=get_task_description(),
     expected_output=get_expected_output(),
-    output_pydantic=Text,
     agent=None,
 )
+
 
 image_generation = Task(
     description=(
