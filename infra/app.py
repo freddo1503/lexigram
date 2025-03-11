@@ -1,22 +1,17 @@
-#!/usr/bin/env python3
-
 import aws_cdk as cdk
-from lexigram_stack import InfraStack
+from helpers import get_account_and_region
+from lexigram_stack import Lexigram
+
+account_and_region = get_account_and_region()
 
 app = cdk.App()
-InfraStack(
+Lexigram(
     app,
-    "InfraStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-    # env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-    # env=cdk.Environment(account='123456789012', region='us-east-1'),
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
+    "Lexigram",
+    env=cdk.Environment(
+        account=account_and_region["account"],
+        region=account_and_region["region"],
+    ),
 )
 
 app.synth()
