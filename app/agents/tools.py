@@ -4,8 +4,7 @@ from datetime import date
 from app.api_client import APIClient
 from app.models import consult, loda
 from app.models.loda import DateRange
-from app.services.consult import fetch_legi_consult
-from app.services.loda import fetch_loda_list
+from app.services.legifrance import fetch_legi_consult, fetch_loda_list
 
 
 def _try_fetch_details(api_client: APIClient, law, index):

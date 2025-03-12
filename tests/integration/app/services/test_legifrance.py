@@ -2,8 +2,22 @@ import json
 from datetime import date
 
 from app.models import loda
+from app.models.consult import LegiConsultRequest
 from app.models.loda import DateRange
-from app.services.loda import fetch_loda_list
+from app.services.legifrance import fetch_legi_consult, fetch_loda_list
+
+
+def test_fetch_legi_consult(api_client):
+    payload = LegiConsultRequest(
+        date=date(2025, 2, 19),
+        textId="LEGITEXT000051187583",
+    )
+
+    response = fetch_legi_consult(api_client=api_client, payload=payload)
+
+    print(json.dumps(response.model_dump(mode="json"), indent=4))
+
+    assert response.id == "LEGITEXT000051187583_19-02-2025"
 
 
 def test_fetch_loda_list_integration(api_client):
