@@ -1,4 +1,5 @@
 from app.api_client import APIClient
+from app.models import loda
 from app.models.consult import LegiConsultRequest, LegiConsultResponse
 
 
@@ -13,3 +14,15 @@ def fetch_legi_consult(
     )
 
     return LegiConsultResponse.model_validate(response)
+
+
+def fetch_loda_list(
+    api_client: APIClient, payload: loda.RequestPayload
+) -> loda.ResponsePayload:
+    """Fetch the list of LODA with proper deserialization and error handling."""
+
+    response = api_client.post(
+        endpoint="/list/loda", payload=payload.model_dump(mode="json")
+    )
+
+    return loda.ResponsePayload.model_validate(response)
