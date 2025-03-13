@@ -1,6 +1,6 @@
 from aws_cdk import Stack
 from constructs import Construct
-from constructs.dynamo_db_table import LawPostsDynamoDBTable
+from dynamo_db_table import LawPostsDynamoDBTable
 
 
 class Lexigram(Stack):

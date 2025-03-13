@@ -1,5 +1,6 @@
 import re
 
+import aws_cdk
 from aws_cdk import aws_dynamodb
 from constructs import Construct
 from pydantic import BaseModel, Field
@@ -10,14 +11,10 @@ class LawPostSchema(BaseModel):
         default={"name": "textId", "type": aws_dynamodb.AttributeType.STRING},
         description="Default partition key with name 'textId' and type STRING.",
     )
-    sort_key: dict = Field(
-        default={"name": "date", "type": aws_dynamodb.AttributeType.STRING},
-        description="Default sort key with name 'date' and type STRING.",
-    )
     attributes: dict = Field(
         default={
             "date": aws_dynamodb.AttributeType.STRING,
-            "isProcessed": aws_dynamodb.AttributeType.STRING,
+            "isProcessed": "BOOLEAN",
         },
         description="Additional attributes for the table.",
     )
@@ -47,25 +44,15 @@ class LawPostsDynamoDBTable(Construct):
         """
         super().__init__(scope, id)
 
-        # Define key attributes
         partition_key = aws_dynamodb.Attribute(
             name=schema.partition_key["name"], type=schema.partition_key["type"]
         )
 
-        sort_key = (
-            aws_dynamodb.Attribute(
-                name=schema.sort_key["name"], type=schema.sort_key["type"]
-            )
-            if schema.sort_key
-            else None
-        )
-
-        # Use schema.table_name dynamically from the __class__.__name__
         self.table = aws_dynamodb.Table(
             self,
             "LawPostsTable",
             table_name=schema.table_name,
             partition_key=partition_key,
-            sort_key=sort_key,
             billing_mode=billing_mode,
+            removal_policy=aws_cdk.RemovalPolicy.DESTROY,
         )
