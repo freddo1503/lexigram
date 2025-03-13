@@ -1,5 +1,11 @@
+import logging
+
 import boto3
 from botocore.exceptions import ClientError
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def add_law_to_dynamodb(
@@ -16,10 +22,11 @@ def add_law_to_dynamodb(
 
     try:
         table.put_item(Item=item)
-        print(f"Successfully added item to table '{table_name}': {item}")
         return True
     except ClientError as e:
-        print(f"Error adding item to DynamoDB table: {e.response['Error']['Message']}")
+        logger.error(
+            f"Error adding item to DynamoDB table: {e.response['Error']['Message']}"
+        )
         return False
 
 
@@ -31,13 +38,14 @@ def get_law_from_dynamodb(table_name: str, text_id: str):
         response = table.get_item(Key={"textId": text_id})
         item = response.get("Item")
         if item:
-            print(f"Successfully retrieved item: {item}")
             return item
         else:
-            print(f"Item with textId '{text_id}' not found in table '{table_name}'.")
+            logger.warning(
+                f"Item with textId '{text_id}' not found in table '{table_name}'."
+            )
             return None
     except ClientError as e:
-        print(
+        logger.error(
             f"Error retrieving item from DynamoDB table: {e.response['Error']['Message']}"
         )
         return None
@@ -56,12 +64,9 @@ def update_law_in_dynamodb(table_name: str, text_id: str, updates: dict):
             UpdateExpression=expression,
             ExpressionAttributeValues=expression_values,
         )
-        print(
-            f"Successfully updated item with textId '{text_id}' in table '{table_name}'."
-        )
         return True
     except ClientError as e:
-        print(
+        logger.error(
             f"Error updating item in DynamoDB table: {e.response['Error']['Message']}"
         )
         return False
@@ -73,12 +78,9 @@ def delete_law_from_dynamodb(table_name: str, text_id: str):
 
     try:
         table.delete_item(Key={"textId": text_id})
-        print(
-            f"Successfully deleted item with textId '{text_id}' from table '{table_name}'."
-        )
         return True
     except ClientError as e:
-        print(
+        logger.error(
             f"Error deleting item from DynamoDB table: {e.response['Error']['Message']}"
         )
         return False
