@@ -8,13 +8,6 @@ from app.services.law import (
     get_law_from_dynamodb,
     update_law_in_dynamodb,
 )
-from infra.dynamo_db_table import LawPostSchema
-
-
-@pytest.fixture(scope="function")
-def table_name():
-    table_name = LawPostSchema().table_name
-    return table_name
 
 
 @pytest.fixture(scope="function")

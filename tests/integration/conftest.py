@@ -4,6 +4,7 @@ import dotenv
 import pytest
 
 from app.api_client import APIClient
+from infra.dynamo_db_table import LawPostSchema
 
 dotenv.load_dotenv()
 
@@ -22,3 +23,9 @@ def api_client():
         token_url=TOKEN_URL,
     )
     return client
+
+
+@pytest.fixture(scope="function")
+def table_name():
+    table_name = LawPostSchema().table_name
+    return table_name
