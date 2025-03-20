@@ -3,7 +3,7 @@ import typing as t
 import pytest
 import requests
 
-from app.api_client import APIClient
+from app.api_client import LegifranceApiClient
 
 CLIENT_ID = "dummy_client_id"
 CLIENT_SECRET = "dummy_client_secret"
@@ -40,7 +40,7 @@ def dummy_post_json_error(
 
 def test_get_access_token_success(monkeypatch):
     monkeypatch.setattr(requests, "post", dummy_post_success)
-    client = APIClient(
+    client = LegifranceApiClient(
         base_url="http://dummy.api",
         token=None,
         client_id=CLIENT_ID,
@@ -53,7 +53,7 @@ def test_get_access_token_success(monkeypatch):
 def test_get_access_token_json_error(monkeypatch):
     monkeypatch.setattr(requests, "post", dummy_post_json_error)
     with pytest.raises(ValueError):
-        APIClient(
+        LegifranceApiClient(
             base_url="http://dummy.api",
             token=None,
             client_id=CLIENT_ID,

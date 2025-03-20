@@ -1,16 +1,16 @@
-from app.api_client import APIClient
+from app.api_client import LegifranceApiClient
 from app.models import loda
 from app.models.consult import LegiConsultRequest, LegiConsultResponse
 
 
 def fetch_legi_consult(
-    api_client: APIClient, payload: LegiConsultRequest
+    api_client: LegifranceApiClient, payload: LegiConsultRequest
 ) -> LegiConsultResponse:
     """
     Récupère les résultats de consultation pour un texte juridique spécifique via l'API Legifrance.
 
     Args:
-        api_client (APIClient): Instance du client API utilisée pour effectuer la requête.
+        api_client (LegifranceApiClient): Instance du client API utilisée pour effectuer la requête.
         payload (LegiConsultRequest): Données de la requête contenant les critères de filtrage.
 
     Returns:
@@ -25,13 +25,13 @@ def fetch_legi_consult(
 
 
 def fetch_loda_list(
-    api_client: APIClient, payload: loda.RequestPayload
+    api_client: LegifranceApiClient, payload: loda.RequestPayload
 ) -> loda.ResponsePayload:
     """
     Récupère la liste des LODA (Lois, Décrets et Arrêtés) depuis l'API Legifrance.
 
     Args:
-        api_client (APIClient): Instance du client API utilisée pour effectuer la requête.
+        api_client (LegifranceApiClient): Instance du client API utilisée pour effectuer la requête.
         payload (loda.RequestPayload): Données de la requête spécifiant les filtres de recherche.
 
     Returns:
