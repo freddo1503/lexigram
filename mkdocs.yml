@@ -1,5 +1,11 @@
-site_name: Lexigram
+site_name: Lexigram - Résumé quotidien des lois françaises avec l'IA
 theme:
   name: material
-
 site_url: https://freddo1503.github.io/lexigram/
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/freddo1503/lexigram
+    - icon: fontawesome/brands/instagram
+      link: https://www.instagram.com/legislation.ai/
