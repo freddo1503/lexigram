@@ -2,11 +2,11 @@ import os
 
 import dotenv
 
-from app.api_client import APIClient
+from app.api_client import LegifranceApiClient
 
 dotenv.load_dotenv()
 
-api_client = APIClient(
+api_client = LegifranceApiClient(
     base_url=os.environ["BASE_URL"],
     client_id=os.environ["CLIENT_ID"],
     client_secret=os.environ["CLIENT_SECRET"],

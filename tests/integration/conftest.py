@@ -3,7 +3,7 @@ import os
 import dotenv
 import pytest
 
-from app.api_client import APIClient
+from app.api_client import LegifranceApiClient
 from infra.dynamo_db_table import LawPostSchema
 
 dotenv.load_dotenv()
@@ -16,7 +16,7 @@ TOKEN_URL = os.environ["TOKEN_URL"]
 
 @pytest.fixture(scope="session")
 def api_client():
-    client = APIClient(
+    client = LegifranceApiClient(
         base_url=BASE_URL,
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,

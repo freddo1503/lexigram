@@ -1,13 +1,13 @@
 import time
 from datetime import date
 
-from app.api_client import APIClient
+from app.api_client import LegifranceApiClient
 from app.models import consult, loda
 from app.models.loda import DateRange
 from app.services.legifrance import fetch_legi_consult, fetch_loda_list
 
 
-def _try_fetch_details(api_client: APIClient, law, index):
+def _try_fetch_details(api_client: LegifranceApiClient, law, index):
     """
     Attempt to fetch details for a given law and return the details if valid.
     """
@@ -26,7 +26,7 @@ def _try_fetch_details(api_client: APIClient, law, index):
     return None
 
 
-def fetch_latest_law(api_client: APIClient):
+def fetch_latest_law(api_client: LegifranceApiClient):
     """
     Fetch the latest law that contains valid details.
     """
