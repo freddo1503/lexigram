@@ -1,16 +1,16 @@
 from datetime import date
 
 import boto3
+from models import loda
+from services.dynamo_utils import DynamoDBClient
 
-from app.models import loda
-from app.models.loda import DateRange
-from app.services.law_tracker import sync_new_loda_entries_to_dynamodb
 from app.services.legifrance import fetch_loda_list
 
 
 def test_sync_new_loda_entries_to_dynamodb(api_client, table_name):
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table(table_name)
+    dynamodb = DynamoDBClient(table_name)
+
+    table = boto3.resource("dynamodb").Table(table_name)
 
     request_payload = loda.RequestPayload(
         sort="PUBLICATION_DATE_DESC",
@@ -18,11 +18,13 @@ def test_sync_new_loda_entries_to_dynamodb(api_client, table_name):
         pageNumber=1,
         natures=["LOI"],
         secondSort="PUBLICATION_DATE_DESC",
-        signatureDate=DateRange(start=date(2024, 1, 1), end=date(2024, 2, 28)),
+        signatureDate=loda.DateRange(start=date(2024, 1, 1), end=date(2024, 2, 28)),
         pageSize=5,
     )
 
-    sync_new_loda_entries_to_dynamodb(api_client=api_client, payload=request_payload)
+    dynamodb.sync_new_loda_entries_to_dynamodb(
+        api_client=api_client, payload=request_payload
+    )
 
     loda_response = fetch_loda_list(api_client=api_client, payload=request_payload)
 
