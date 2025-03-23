@@ -121,14 +121,14 @@ class DynamoDBClient:
             if not items:
                 return None
 
-            last_unprocessed = sorted(items, key=lambda x: x["date"], reverse=True)[0]
+            oldest_unprocessed = sorted(items, key=lambda x: x["date"])[0]
 
-            date_str = last_unprocessed.get("date")
+            date_str = oldest_unprocessed.get("date")
             law_date = datetime.fromisoformat(date_str).date() if date_str else None
 
             result = {
                 "date": law_date,
-                "textId": last_unprocessed.get("textId"),
+                "textId": oldest_unprocessed.get("textId"),
             }
             return result
         except ClientError as e:
