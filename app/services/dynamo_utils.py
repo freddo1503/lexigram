@@ -1,4 +1,6 @@
 import logging
+import typing as t
+from datetime import datetime
 
 import boto3
 from boto3.dynamodb.conditions import Attr
@@ -32,11 +34,11 @@ class DynamoDBClient:
             logger.error(f"Error adding item: {e.response['Error']['Message']}")
             return False
 
-    def update_item(self, key: dict, updates: dict):
-        expression = "SET " + ", ".join([f"{key} = :{key}" for key in updates.keys()])
-        expression_values = {f":{k}": v for k, v in updates.items()}
-
+    def update_item(self, key: dict, updates: dict) -> bool:
         try:
+            expression = "SET " + ", ".join(f"{k} = :{k}" for k in updates)
+            expression_values = {f":{k}": v for k, v in updates.items()}
+
             self.table.update_item(
                 Key=key,
                 UpdateExpression=expression,
@@ -74,11 +76,12 @@ class DynamoDBClient:
         date = law.lastUpdate.isoformat() if law.lastUpdate else None
 
         existing_item = self.get_item(key={"textId": text_id})
-        if existing_item:
+        if not existing_item:
+            item = {"textId": text_id, "date": date, "isProcessed": False}
+            self.put_item(item)
             return
-
-        item = {"textId": text_id, "date": date, "isProcessed": False}
-        self.put_item(item)
+        else:
+            return False
 
     def sync_new_loda_entries_to_dynamodb(
         self, api_client, payload: loda.RequestPayload
@@ -86,33 +89,48 @@ class DynamoDBClient:
         """
         Synchronizes multiple LODA entries to DynamoDB.
         """
+        logger.info("Starting LODA entries synchronization...")
         loda_response = fetch_loda_list(api_client, payload)
 
+        sync_count = 0
+
         for law in loda_response.results:
-            self.sync_new_law_to_dynamodb(law)
+            if self.sync_new_law_to_dynamodb(law):
+                sync_count += 1
 
-        return "Synchronization complete"
+        logger.info(f"Synchronized {sync_count} new laws successfully.")
+        return f"Synchronization complete: {sync_count} new laws added."
 
-    def get_last_unprocessed_law(self):
+    def get_last_unprocessed_law(self) -> t.Optional[t.Dict[str, t.Any]]:
         """
         Retrieves the latest unprocessed law entry (`isProcessed=false`) from DynamoDB.
-        Returns `textId` and `date` of the law.
+        Returns a dictionary with `textId` and `date` of the law.
+        Example format:
+        {'date': '2025-03-15T00:00:00+00:00', 'textId': 'LEGITEXT000051331433'}
         """
         try:
             response = self.table.scan(
-                FilterExpression=Attr("isProcessed").eq(
-                    False
-                ),  # Filter for unprocessed entries
-                ProjectionExpression="textId, date",  # Fetch only `textId` and `date`
+                FilterExpression=Attr("isProcessed").eq(False),
+                ProjectionExpression="#textId, #date",
+                ExpressionAttributeNames={
+                    "#textId": "textId",
+                    "#date": "date",
+                },
             )
             items = response.get("Items", [])
-            if items:
-                # Assuming latest entries have the highest `date`
-                last_unprocessed = sorted(items, key=lambda x: x["date"], reverse=True)[
-                    0
-                ]
-                return last_unprocessed
-            return None  # Return None if no unprocessed laws
+            if not items:
+                return None
+
+            last_unprocessed = sorted(items, key=lambda x: x["date"], reverse=True)[0]
+
+            date_str = last_unprocessed.get("date")
+            law_date = datetime.fromisoformat(date_str).date() if date_str else None
+
+            result = {
+                "date": law_date,
+                "textId": last_unprocessed.get("textId"),
+            }
+            return result
         except ClientError as e:
             logger.error(
                 f"Error retrieving last unprocessed law: {e.response['Error']['Message']}"
