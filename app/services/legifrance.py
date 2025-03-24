@@ -1,6 +1,11 @@
+import logging
+
 from app.api_client import LegifranceApiClient
 from app.models import loda
 from app.models.consult import LegiConsultRequest, LegiConsultResponse
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def fetch_legi_consult(
@@ -16,6 +21,11 @@ def fetch_legi_consult(
     Returns:
         LegiConsultResponse: Détails du texte juridique.
     """
+
+    logger.info(
+        "Sending payload: %s", payload.model_dump(mode="json", exclude_none=True)
+    )
+
     response = api_client.post(
         endpoint="/consult/legiPart",
         payload=payload.model_dump(mode="json", exclude_none=True),

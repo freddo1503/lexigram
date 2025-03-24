@@ -29,6 +29,7 @@ class DallETool(BaseTool):
             return "Image description is required."
 
         response = client.images.generate(
+            model="dall-e-3",
             prompt=image_description,
             size="1024x1024",
             n=1,
