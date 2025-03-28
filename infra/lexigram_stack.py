@@ -3,7 +3,7 @@ from pathlib import Path
 
 import aws_cdk
 import boto3
-from aws_cdk import aws_iam, aws_lambda, aws_logs
+from aws_cdk import aws_events, aws_events_targets, aws_iam, aws_lambda, aws_logs
 from constructs import Construct
 from dotenv import dotenv_values
 from dynamo_db_table import LawPostsDynamoDBTable
@@ -41,6 +41,15 @@ class Lexigram(aws_cdk.Stack):
                 resources=[secret.secret_arn],
             )
         )
+
+        rule = aws_events.Rule(
+            self,
+            "LexigramLambdaSchedule",
+            schedule=aws_events.Schedule.cron(
+                minute="30", hour="12", week_day="MON-FRI"
+            ),
+        )
+        rule.add_target(aws_events_targets.LambdaFunction(target=lambda_function))
 
 
 class SecretsManagerConstruct(Construct):
