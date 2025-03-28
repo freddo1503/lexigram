@@ -24,7 +24,7 @@ class AnalysteJuridique(Agent):
             ),
             llm=LLM(
                 model="mistral/mistral-large-latest",
-                api_key=config.mistral_api_key,
+                api_key=config.MISTRAL_API_KEY,
             ),
             verbose=True,
         )

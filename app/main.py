@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from datetime import date
 
 from bs4 import BeautifulSoup
@@ -13,9 +12,6 @@ from app.models.consult import LegiConsultResponse
 from app.services.dynamo_utils import DynamoDBClient
 from app.services.legifrance import fetch_legi_consult
 from app.services.publisher import Publisher
-from infra.dynamo_db_table import LawPostSchema
-
-os.environ["OTEL_SDK_DISABLED"] = "true"  # Disable OpenTelemetry SDK
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,7 +51,7 @@ def init_dynamo_client():
     """
     Initialize the DynamoDB client with the appropriate table schema.
     """
-    return DynamoDBClient(LawPostSchema().table_name)
+    return DynamoDBClient(config.DYNAMO_TABLE_NAME)
 
 
 def sync_dynamodb_with_latest_laws(dynamo_client):
@@ -138,7 +134,7 @@ def process_and_publish_law(dynamo_client, last_law, law_details: LegiConsultRes
         caption = resume.tasks_output[2].raw
 
         logger.info("Publishing content to Instagram...")
-        publisher = Publisher(access_token=config.access_token)
+        publisher = Publisher(access_token=config.ACCESS_TOKEN)
         published_id = publisher.publish(
             image_url=image_generation.get("image_url"), caption=caption
         )
