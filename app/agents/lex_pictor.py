@@ -21,7 +21,7 @@ class DallETool(BaseTool):
     args_schema: Type[BaseModel] = ImagePromptSchema
 
     def _run(self, **kwargs) -> str:
-        client = OpenAI(api_key=config.open_api_key)
+        client = OpenAI(api_key=config.OPENAI_API_KEY)
 
         image_description = kwargs.get("image_description")
 
@@ -29,6 +29,7 @@ class DallETool(BaseTool):
             return "Image description is required."
 
         response = client.images.generate(
+            model="dall-e-3",
             prompt=image_description,
             size="1024x1024",
             n=1,
@@ -63,7 +64,7 @@ class LexPictor(Agent):
                 "LexPictor fusionne créativité artistique et innovation technologique pour explorer de nouveaux horizons visuels. Son travail est reconnu pour sa capacité "
                 "à transformer des idées abstraites en représentations visuelles tangibles, engageant un large public et suscitant réflexion et admiration."
             ),
-            llm=LLM(model="gpt-4", api_key=config.open_api_key),
+            llm=LLM(model="gpt-4", api_key=config.OPENAI_API_KEY),
             tools=[DallETool()],
             allow_delegation=False,
             verbose=True,
