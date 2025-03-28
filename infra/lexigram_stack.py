@@ -26,12 +26,11 @@ class Lexigram(aws_cdk.Stack):
             self,
             "LexigramLambdaFunction",
             code=aws_lambda.DockerImageCode.from_image_asset(
-                working_directory="/tmp",
                 directory=str(Path("./").resolve()),
             ),
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
             timeout=aws_cdk.Duration.minutes(2),
-            memory_size=1024,
+            memory_size=512,
         )
 
         law_posts_table.table.grant_read_write_data(lambda_function)
@@ -46,10 +45,10 @@ class Lexigram(aws_cdk.Stack):
             self,
             "LexigramLambdaSchedule",
             schedule=aws_events.Schedule.cron(
-                minute="30", hour="12", week_day="MON-FRI"
+                minute="30", hour="11", week_day="MON-FRI"
             ),
         )
-        rule.add_target(aws_events_targets.LambdaFunction(target=lambda_function))
+        rule.add_target(aws_events_targets.LambdaFunction(lambda_function))
 
 
 class SecretsManagerConstruct(Construct):
