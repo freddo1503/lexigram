@@ -52,3 +52,26 @@ def fetch_loda_list(
     )
 
     return loda.ResponsePayload.model_validate(response)
+
+
+def extract_legifrance_url(
+    response: LegiConsultResponse, doc_type: str = "jorf"
+) -> str:
+    """
+    Build l'URL publique Legifrance d'une réponse de consultation.
+
+    Args:
+        response (LegiConsultResponse): Réponse contenant les métadonnées du texte juridique.
+        doc_type (str): Type de document ("loda", "jorf", etc.). Par défaut "jorf".
+
+    Returns:
+        str: URL publique vers le texte juridique sur Legifrance.
+
+    Raises:
+        ValueError: Si l'identifiant du contenu est introuvable.
+    """
+    cid = getattr(response, "cid", None)
+    if not cid:
+        raise ValueError("Identifiant 'cid' introuvable dans la réponse.")
+
+    return f"https://www.legifrance.gouv.fr/{doc_type}/id/{cid}"

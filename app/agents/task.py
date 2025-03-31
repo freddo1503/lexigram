@@ -45,7 +45,8 @@ caption = Task(
     description=(
         "Convert a detailed legal analysis into a clear and engaging Instagram post. "
         "Ensure the content is concise, easy to understand, and structured for readability. "
-        "Do not use bold, italics, asterisks, or any special formatting—just plain text."
+        "Do not use bold, italics, asterisks, or any special formatting—just plain text. "
+        "The link to the original text will be included in the comment."
     ),
     expected_output=(
         "An Instagram-ready text with key takeaways, bullet points, or a carousel-friendly breakdown. "
