@@ -84,3 +84,27 @@ class Publisher:
         creation_id = self.create_media_object(image_url, caption)
         self.wait_for_media_processing(creation_id)
         return self.publish_post(creation_id)
+
+    def comment_on_post(self, media_id: str, message: str) -> str:
+        """
+        Comment on an existing Instagram post.
+
+        Args:
+            media_id (str): The ID of the media (post) to comment on.
+            message (str): The comment message.
+
+        Returns:
+            str: The ID of the created comment.
+
+        Raises:
+            ValueError: If the comment fails.
+        """
+        comment_url = f"{self.instagram_graph_url}/{media_id}/comments"
+        payload = {"message": message, "access_token": self.access_token}
+        try:
+            response = requests.post(comment_url, data=payload)
+            response.raise_for_status()
+            comment_data = response.json()
+            return comment_data.get("id")
+        except Exception as e:
+            raise ValueError(f"Error posting comment on media {media_id}: {e}")
