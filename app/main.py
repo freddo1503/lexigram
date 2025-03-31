@@ -10,7 +10,7 @@ from app.config import api_client
 from app.models import consult, loda
 from app.models.consult import LegiConsultResponse
 from app.services.dynamo_utils import DynamoDBClient
-from app.services.legifrance import fetch_legi_consult
+from app.services.legifrance import extract_legifrance_url, fetch_legi_consult
 from app.services.publisher import Publisher
 
 logging.basicConfig(
@@ -139,6 +139,9 @@ def process_and_publish_law(dynamo_client, last_law, law_details: LegiConsultRes
             image_url=image_generation.get("image_url"), caption=caption
         )
         logger.info("Successfully published to Instagram with ID: %s", published_id)
+
+        if law_details.cid:
+            publisher.comment_on_post(published_id, extract_legifrance_url(law_details))
 
         if published_id:
             update_processed_law_status(dynamo_client, last_law)
