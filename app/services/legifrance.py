@@ -1,6 +1,12 @@
 import logging
 
 from app.api_client import LegifranceApiClient
+from app.errors.exceptions import (
+    DataIntegrityError,
+    DataParsingError,
+    LegifranceError,
+)
+from app.errors.handlers import retry
 from app.models import loda
 from app.models.consult import LegiConsultRequest, LegiConsultResponse
 
@@ -8,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@retry(max_attempts=3)
 def fetch_legi_consult(
     api_client: LegifranceApiClient, payload: LegiConsultRequest
 ) -> LegiConsultResponse:
@@ -20,20 +27,40 @@ def fetch_legi_consult(
 
     Returns:
         LegiConsultResponse: Détails du texte juridique.
+
+    Raises:
+        LegifranceError: En cas d'erreur lors de la communication avec l'API Legifrance.
+        DataParsingError: Si la réponse ne peut pas être analysée correctement.
     """
+    try:
+        logger.info(
+            "Sending payload to Legifrance API: %s",
+            payload.model_dump(mode="json", exclude_none=True),
+        )
 
-    logger.info(
-        "Sending payload: %s", payload.model_dump(mode="json", exclude_none=True)
-    )
+        response = api_client.post(
+            endpoint="/consult/legiPart",
+            payload=payload.model_dump(mode="json", exclude_none=True),
+        )
 
-    response = api_client.post(
-        endpoint="/consult/legiPart",
-        payload=payload.model_dump(mode="json", exclude_none=True),
-    )
+        try:
+            return LegiConsultResponse.model_validate(response)
+        except Exception as e:
+            raise DataParsingError(
+                f"Failed to parse Legifrance consultation response: {str(e)}",
+                original_exception=e,
+                details={"response": response},
+            )
+    except Exception as e:
+        if not isinstance(e, (LegifranceError, DataParsingError)):
+            raise LegifranceError(
+                f"Error fetching consultation from Legifrance: {str(e)}",
+                original_exception=e,
+            ) from e
+        raise
 
-    return LegiConsultResponse.model_validate(response)
 
-
+@retry(max_attempts=3)
 def fetch_loda_list(
     api_client: LegifranceApiClient, payload: loda.RequestPayload
 ) -> loda.ResponsePayload:
@@ -46,12 +73,36 @@ def fetch_loda_list(
 
     Returns:
         loda.ResponsePayload: Liste des entrées LODA.
-    """
-    response = api_client.post(
-        endpoint="/list/loda", payload=payload.model_dump(mode="json")
-    )
 
-    return loda.ResponsePayload.model_validate(response)
+    Raises:
+        LegifranceError: En cas d'erreur lors de la communication avec l'API Legifrance.
+        DataParsingError: Si la réponse ne peut pas être analysée correctement.
+    """
+    try:
+        logger.info(
+            "Fetching LODA list from Legifrance API with filters: %s",
+            payload.model_dump(mode="json"),
+        )
+
+        response = api_client.post(
+            endpoint="/list/loda", payload=payload.model_dump(mode="json")
+        )
+
+        try:
+            return loda.ResponsePayload.model_validate(response)
+        except Exception as e:
+            raise DataParsingError(
+                f"Failed to parse Legifrance LODA list response: {str(e)}",
+                original_exception=e,
+                details={"response": response},
+            )
+    except Exception as e:
+        if not isinstance(e, (LegifranceError, DataParsingError)):
+            raise LegifranceError(
+                f"Error fetching LODA list from Legifrance: {str(e)}",
+                original_exception=e,
+            ) from e
+        raise
 
 
 def extract_legifrance_url(
@@ -68,10 +119,18 @@ def extract_legifrance_url(
         str: URL publique vers le texte juridique sur Legifrance.
 
     Raises:
-        ValueError: Si l'identifiant du contenu est introuvable.
+        DataIntegrityError: Si l'identifiant du contenu est introuvable.
     """
     cid = getattr(response, "cid", None)
     if not cid:
-        raise ValueError("Identifiant 'cid' introuvable dans la réponse.")
+        raise DataIntegrityError(
+            "Identifiant 'cid' introuvable dans la réponse Legifrance",
+            details={
+                "response_type": type(response).__name__,
+                "available_attrs": dir(response),
+            },
+        )
 
-    return f"https://www.legifrance.gouv.fr/{doc_type}/id/{cid}"
+    url = f"https://www.legifrance.gouv.fr/{doc_type}/id/{cid}"
+    logger.debug("Generated Legifrance URL: %s", url)
+    return url
