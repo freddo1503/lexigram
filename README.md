@@ -3,6 +3,7 @@
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
 [![Automatisation](https://img.shields.io/badge/Automatisation-Instagram-orange.svg)](https://www.instagram.com/legislation.ai/)
+[![Deployed](https://github.com/freddo1503/lexigram/actions/workflows/deploy.yml/badge.svg)](https://github.com/freddo1503/lexigram/actions/workflows/deploy.yml)
 
 Lexigram utilise l'intelligence artificielle pour générer et publier automatiquement chaque jour des résumés succincts des dernières législations françaises sur Instagram. Suivez facilement les nouvelles réglementations françaises grâce à un contenu clair, précis, et visuellement engageant 📲.
 

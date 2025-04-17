@@ -1,0 +1,59 @@
+name: Deploy to AWS using CDK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    container:
+      image: python:3.12
+      options: --privileged -v /var/run/docker.sock:/var/run/docker.sock
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Docker CLI
+        run: |
+          apt-get update
+          apt-get install -y docker.io
+
+      - name: Check Docker Access
+        run: docker version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Create .env file
+        run: |
+          install -m 600 /dev/null .env
+          printf "%s" "${{ secrets.ENV }}" > .env
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+
+      - name: Install uv package manager
+        run: pip install uv
+
+      - name: Install dependencies with uv
+        run: uv sync
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-3
+
+      - name: Deploy CDK Stack
+        run: uv run cdk deploy --all --require-approval=never
+        env:
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+          CDK_DEFAULT_REGION: eu-west-3
+
