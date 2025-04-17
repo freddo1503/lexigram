@@ -4,6 +4,14 @@ import typing as t
 
 import requests
 
+from app.errors.exceptions import (
+    APIError,
+    AuthenticationError,
+    DataParsingError,
+    LegifranceError,
+)
+from app.errors.handlers import retry, safe_parse_json, safe_request
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -51,12 +59,18 @@ class LegifranceApiClient:
             self.token = self._get_access_token()
         self.session.headers.update({"Authorization": f"Bearer {self.token}"})
 
+    @retry(max_attempts=3)
     def _get_access_token(self) -> str:
         """
         Retrieves an access token using client credentials and updates the token expiry.
 
         Returns:
             str: A valid access token.
+
+        Raises:
+            AuthenticationError: If authentication fails.
+            DataParsingError: If the response cannot be parsed as JSON.
+            LegifranceError: For other Legifrance-specific errors.
         """
         payload: t.Dict[str, t.Any] = {
             "grant_type": "client_credentials",
@@ -66,24 +80,37 @@ class LegifranceApiClient:
         }
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        response = requests.post(self._token_url, data=payload, headers=headers)
         try:
-            token_data = response.json()
-        except ValueError as err:
-            logger.error("Failed to parse token response as JSON: %s", err)
+            response = safe_request(
+                "POST",
+                self._token_url,
+                api_name="Legifrance Auth",
+                data=payload,
+                headers=headers,
+            )
+            token_data = safe_parse_json(response, api_name="Legifrance Auth")
+
+            if (
+                not token_data.get("access_token")
+                or token_data.get("access_token") == "null"
+            ):
+                raise AuthenticationError(
+                    "Failed to obtain access token", details={"response": token_data}
+                )
+
+            # Cache the token expiry; subtract a safety margin (e.g., 60 seconds)
+            expires_in = token_data.get("expires_in", 3600)
+            self.token_expiry = time.time() + expires_in - 60
+            return token_data.get("access_token")
+        except APIError as e:
+            # Wrap in LegifranceError if it's not already an AuthenticationError
+            if not isinstance(e, AuthenticationError):
+                raise LegifranceError(
+                    f"Error obtaining Legifrance access token: {e.message}",
+                    original_exception=e,
+                    details=getattr(e, "details", {}),
+                ) from e
             raise
-
-        if (
-            not token_data.get("access_token")
-            or token_data.get("access_token") == "null"
-        ):
-            logger.error("Failed to obtain access token. Response: %s", response.text)
-            raise RuntimeError("Failed to obtain access token.")
-
-        # Cache the token expiry; subtract a safety margin (e.g., 60 seconds)
-        expires_in = token_data.get("expires_in", 3600)
-        self.token_expiry = time.time() + expires_in - 60
-        return token_data.get("access_token")
 
     def _ensure_token(self) -> None:
         """
@@ -100,65 +127,138 @@ class LegifranceApiClient:
         """
         return f"{self.base_url}/{endpoint.lstrip('/')}"
 
+    @retry(max_attempts=3)
     def request(
         self,
         method: str,
         endpoint: str,
         payload: t.Optional[str] = None,
         params: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> requests.Response:
+    ) -> t.Dict[str, t.Any]:
         """
         Send an HTTP request and return the JSON response.
+
+        Args:
+            method: HTTP method (GET, POST, etc.)
+            endpoint: API endpoint to request
+            payload: Request payload (will be converted to JSON)
+            params: Query parameters
+
+        Returns:
+            The JSON response as a dictionary
+
+        Raises:
+            LegifranceError: For Legifrance-specific errors
+            AuthenticationError: If authentication fails
+            DataParsingError: If the response cannot be parsed as JSON
+            APIError: For other API-related errors
         """
         self._ensure_token()  # Refresh token if necessary
         url = self._build_url(endpoint)
-        response = self.session.request(method, url, json=payload, params=params)
+
         try:
-            response.raise_for_status()
-        except requests.HTTPError as http_err:
-            logger.error("HTTP error occurred: %s", http_err)
-            raise
-        except Exception as err:
-            logger.error("Unexpected error occurred: %s", err)
+            # Use our session for authentication headers
+            headers = self.session.headers.copy()
+
+            # Make the request with our safe_request utility
+            response = safe_request(
+                method,
+                url,
+                api_name="Legifrance",
+                headers=headers,
+                json=payload,
+                params=params,
+            )
+
+            # Parse the JSON response safely
+            return safe_parse_json(response, api_name="Legifrance")
+        except APIError as e:
+            # Wrap in LegifranceError if it's not already a specific error type
+            if not isinstance(e, (AuthenticationError, DataParsingError)):
+                raise LegifranceError(
+                    f"Error in Legifrance API request: {e.message}",
+                    original_exception=e,
+                    details=getattr(e, "details", {}),
+                ) from e
             raise
 
-        return response.json()
-
+    @retry(max_attempts=3)
     def get(
         self,
         endpoint: str,
         params: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> str:
+    ) -> t.Union[t.Dict[str, t.Any], str]:
         """
-        Perform a GET request and return the response as a string.
+        Perform a GET request and return the response.
 
         Args:
-            endpoint (str): API endpoint to request.
-            params (Optional[Dict[str, Any]]): Query parameters.
+            endpoint: API endpoint to request.
+            params: Query parameters.
 
         Returns:
-            str: The response content as a string.
+            The response content as a dictionary (if JSON) or string.
+
+        Raises:
+            LegifranceError: For Legifrance-specific errors
+            AuthenticationError: If authentication fails
+            APIError: For other API-related errors
         """
         self._ensure_token()  # Refresh token if necessary
         url = self._build_url(endpoint)
-        response = self.session.get(url, params=params)
 
         try:
-            return response.json()
-        except requests.JSONDecodeError:
-            return response.text
+            # Use our session for authentication headers
+            headers = self.session.headers.copy()
+
+            # Make the request with our safe_request utility
+            response = safe_request(
+                "GET", url, api_name="Legifrance", headers=headers, params=params
+            )
+
+            # Try to parse as JSON, fall back to text
+            try:
+                return safe_parse_json(response, api_name="Legifrance")
+            except DataParsingError:
+                return response.text
+        except APIError as e:
+            # Wrap in LegifranceError if it's not already a specific error type
+            if not isinstance(e, AuthenticationError):
+                raise LegifranceError(
+                    f"Error in Legifrance API GET request: {e.message}",
+                    original_exception=e,
+                    details=getattr(e, "details", {}),
+                ) from e
+            raise
 
     def post(
         self,
         endpoint: str,
         payload: t.Optional[str] = None,
-    ) -> requests.Response:
+    ) -> t.Dict[str, t.Any]:
         """
-        Perform a POST request.
+        Perform a POST request and return the JSON response.
+
+        Args:
+            endpoint: API endpoint to request.
+            payload: Request payload (will be converted to JSON).
+
+        Returns:
+            The JSON response as a dictionary.
+
+        Raises:
+            LegifranceError: For Legifrance-specific errors
+            AuthenticationError: If authentication fails
+            DataParsingError: If the response cannot be parsed as JSON
+            APIError: For other API-related errors
         """
-        self.session.headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}",
-        }
+        # Ensure headers are set correctly
+        self.session.headers.update(
+            {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.token}",
+            }
+        )
+
+        # Use the request method which now has proper error handling
         return self.request("POST", endpoint, payload=payload)
