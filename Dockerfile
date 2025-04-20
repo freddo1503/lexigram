@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.6.10 AS uv
+FROM ghcr.io/astral-sh/uv:0.6.14 AS uv
 
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.12 AS builder

@@ -5,21 +5,22 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "aws-cdk-lib>=2.184.1",
-    "aws-lambda-powertools>=3.8.0",
+    "aws-cdk-lib>=2.190.0",
+    "aws-lambda-powertools>=3.10.0",
     "aws-lambda-typing>=2.20.0",
-    "beautifulsoup4>=4.13.3",
-    "boto3>=1.37.15",
+    "beautifulsoup4>=4.13.4",
+    "boto3>=1.37.37",
     "constructs>=10.4.2",
-    "crewai>=0.108.0",
+    "crewai>=0.114.0",
     "dotenv>=0.9.9",
-    "openai>=1.66.5",
-    "pydantic>=2.10.6",
+    "openai>=1.75.0",
+    "pydantic>=2.11.3",
     "requests>=2.32.3",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = "."
+addopts = "--cov=app --cov-report=term --cov-report=html"
 
 [dependency-groups]
 dev = [
@@ -27,6 +28,7 @@ dev = [
     "pre-commit>=4.1.0",
     "pytest>=8.3.4",
     "pytest-mock>=3.14.0",
+    "pytest-cov>=4.1.0",
     "ruff>=0.9.6",
 ]
 docs = [
