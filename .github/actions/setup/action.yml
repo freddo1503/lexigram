@@ -1,0 +1,52 @@
+name: 'Common Setup'
+description: 'Sets up the environment with common dependencies and configurations'
+
+inputs:
+  install-all-extras:
+    description: 'Whether to install all extras with uv sync'
+    required: false
+    default: 'false'
+  aws-access-key-id:
+    description: 'AWS Access Key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key'
+    required: true
+  env-content:
+    description: 'Content for .env file'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create .env file
+      shell: bash
+      run: |
+        install -m 600 /dev/null .env
+        printf "%s" "${{ inputs.env-content }}" > .env
+    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: eu-west-3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install uv package manager
+      shell: bash
+      run: pip install uv
+    
+    - name: Install dependencies with uv
+      if: inputs.install-all-extras == 'false'
+      shell: bash
+      run: uv sync
+    
+    - name: Install dependencies with uv (all extras)
+      if: inputs.install-all-extras == 'true'
+      shell: bash
+      run: uv sync --all-extras

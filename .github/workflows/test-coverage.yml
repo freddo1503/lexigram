@@ -17,28 +17,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: |
-          install -m 600 /dev/null .env
-          printf "%s" "${{ secrets.ENV }}" > .env
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Setup Common Environment
+        uses: ./.github/actions/setup
         with:
+          install-all-extras: 'true'
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install uv package manager
-        run: pip install uv
-
-      - name: Install dependencies with uv
-        run: uv sync --all-extras
+          env-content: ${{ secrets.ENV }}
 
       - name: Run tests with coverage
         run: uv run ./scripts/generate_coverage_report.py
