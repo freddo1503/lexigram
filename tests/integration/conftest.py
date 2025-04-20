@@ -3,9 +3,8 @@ import dotenv
 import pytest
 
 from app.api_client import LegifranceApiClient
-from app.config import BASE_URL, CLIENT_ID, CLIENT_SECRET, TOKEN_URL
+from app.config import BASE_URL, CLIENT_ID, CLIENT_SECRET, DYNAMO_TABLE_NAME, TOKEN_URL
 from app.services.dynamo_utils import DynamoDBClient
-from infra.dynamo_db_table import LawPostSchema
 
 dotenv.load_dotenv()
 
@@ -23,7 +22,7 @@ def api_client():
 
 @pytest.fixture(scope="function")
 def table_name():
-    table_name = LawPostSchema().table_name
+    table_name = DYNAMO_TABLE_NAME
     return table_name
 
 

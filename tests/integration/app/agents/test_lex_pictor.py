@@ -1,7 +1,8 @@
 import json
 
 import pytest
-from agents.lex_pictor import DallETool
+
+from app.agents.lex_pictor import DallETool
 
 
 def test_dalle_tool_success():

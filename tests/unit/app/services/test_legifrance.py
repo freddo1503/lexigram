@@ -2,6 +2,7 @@ from datetime import date
 
 import pytest
 
+from app.errors.exceptions import DataIntegrityError
 from app.models.consult import Article, LegiConsultResponse
 from app.services.legifrance import extract_legifrance_url
 
@@ -55,6 +56,7 @@ def test_extract_legifrance_url_missing_cid():
     response = get_sample_legiconsult_response()
     response.cid = None
     with pytest.raises(
-        ValueError, match="Identifiant 'cid' introuvable dans la réponse."
+        DataIntegrityError,
+        match="Identifiant 'cid' introuvable dans la réponse Legifrance",
     ):
         extract_legifrance_url(response)
