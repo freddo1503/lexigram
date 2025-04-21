@@ -1,7 +1,28 @@
 site_name: Lexigram - Résumé quotidien des lois françaises avec l'IA
 theme:
   name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - content.code.copy
 site_url: https://freddo1503.github.io/lexigram/
+
+nav:
+  - Accueil: index.md
+  - Tutoriels: 
+    - tutorials/index.md
+    - Installation: tutorials/installation.md
+  - Guides Pratiques: 
+    - how-to/index.md
+    - Optimiser les prompts DALL-E: how-to/optimize-dalle-prompts.md
+  - Référence: 
+    - reference/index.md
+    - Agents: reference/agents.md
+  - Explication: 
+    - explanation/index.md
+    - Architecture Multi-Agent: explanation/multi-agent-architecture.md
 
 extra:
   social:
