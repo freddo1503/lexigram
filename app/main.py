@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import date
 
@@ -216,17 +215,17 @@ def process_and_publish_law(dynamo_client, last_law, law_details: LegiConsultRes
 
             # Parse the crew output
             try:
-                image_generation = json.loads(resume.tasks_output[1].raw)
+                image_generation = resume.tasks_output[1].pydantic
                 caption = resume.tasks_output[2].raw
 
-                if not image_generation.get("image_url"):
+                if not image_generation.image_url:
                     raise CrewError(
                         "Crew did not generate a valid image URL",
                         details={"crew_output": resume.tasks_output[1].raw},
                     )
-            except (IndexError, json.JSONDecodeError) as e:
+            except (IndexError, AttributeError) as e:
                 raise CrewError(
-                    "Error parsing crew output",
+                    "Error accessing crew output",
                     original_exception=e,
                     details={
                         "crew_output": str(resume.tasks_output)
@@ -248,7 +247,7 @@ def process_and_publish_law(dynamo_client, last_law, law_details: LegiConsultRes
             logger.info("Publishing content to Instagram...")
             publisher = Publisher(access_token=config.ACCESS_TOKEN)
             published_id = publisher.publish(
-                image_url=image_generation.get("image_url"), caption=caption
+                image_url=image_generation.image_url, caption=caption
             )
             logger.info("Successfully published to Instagram with ID: %s", published_id)
 

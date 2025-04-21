@@ -1,9 +1,9 @@
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.agents.lex_pictor import DallETool, LexPictor
+from app.models.lex_pictor import ImagePayload
 
 
 class MockImageData:
@@ -38,12 +38,18 @@ def test_dalle_tool_run_success(mock_openai_client):
 
     assert result, "The result should not be empty"
 
-    data = json.loads(result)
+    # Verify the result is an ImagePayload object
+    assert isinstance(result, ImagePayload), (
+        "The result should be an ImagePayload object"
+    )
 
-    assert "image_url" in data, "The result should contain an image_url"
-    assert "image_description" in data, "The result should contain an image_description"
-    assert data["image_url"] == "https://example.com/image.jpg"
-    assert data["image_description"] == "A beautiful landscape with mountains"
+    # Validate the ImagePayload properties
+    assert result.image_url == "https://example.com/image.jpg", (
+        "The image_url should match the mock data"
+    )
+    assert result.image_description == "A beautiful landscape with mountains", (
+        "The image_description should match the mock data"
+    )
 
     mock_openai_client.images.generate.assert_called_once_with(
         model="dall-e-3",

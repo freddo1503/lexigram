@@ -1,5 +1,7 @@
 from crewai import Task
 
+from app.models.lex_pictor import ImagePayload
+
 
 def get_task_description():
     return (
@@ -36,9 +38,10 @@ image_generation = Task(
         "clarity and accessibility for a non-expert audience. Do no include any details related "
         "to specific countries, such as flags or country names."
     ),
-    expected_output="{image_url: }",
+    expected_output=ImagePayload(image_url="", image_description="").model_dump_json(),
     context=[text_summary],
     agent=None,
+    output_pydantic=ImagePayload,
 )
 
 caption = Task(

@@ -1,8 +1,5 @@
-import json
-
-import pytest
-
 from app.agents.lex_pictor import DallETool
+from app.models.lex_pictor import ImagePayload
 
 
 def test_dalle_tool_success():
@@ -15,16 +12,13 @@ def test_dalle_tool_success():
     result = tool._run(**valid_input)
     assert result, "The result should not be empty."
 
-    # Parse the returned JSON
-    try:
-        data = json.loads(result)
-    except json.JSONDecodeError:
-        pytest.fail("The result is not a valid JSON object.")
-
-    # Validate the JSON structure
-    assert "image_url" in data, "The result should contain an image_url."
-    assert "image_description" in data, (
-        "The result should contain an image_description."
+    # Verify the result is an ImagePayload object
+    assert isinstance(result, ImagePayload), (
+        "The result should be an ImagePayload object."
     )
 
-    print("Image URL:", data["image_url"])
+    # Validate the ImagePayload properties
+    assert result.image_url, "The result should contain a non-empty image_url."
+    assert result.image_description, (
+        "The result should contain a non-empty image_description."
+    )
