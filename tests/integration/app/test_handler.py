@@ -1,17 +1,13 @@
-# test_integration_secrets.py
 import os
 
-from app.config import get_all_secrets  # adjust import if needed
+from app.config import get_all_secrets
 
 
-def test_get_all_secrets_integration():
+def test_get_all_secrets_integration(secrets_manager_client):
     secret_name = "my-env-secrets"
 
-    # Call the function to retrieve secrets from AWS Secrets Manager
-    secret = get_all_secrets(secret_name)
+    secret = get_all_secrets(client=secrets_manager_client, secret_name=secret_name)
 
-    # The secret should be a non-empty dictionary if retrieval was successful.
-    # Depending on your secret's content, you can adjust these assertions.
     assert isinstance(secret, dict), "Expected secret to be a dictionary."
     assert secret, (
         "The secret dictionary returned is empty. Ensure that the secret exists in AWS Secrets Manager."
@@ -24,7 +20,9 @@ def test_get_all_secrets_integration():
             f"Environment variable '{key}' has value '{env_val}', expected '{value}'."
         )
 
-    cached_secret = get_all_secrets(secret_name)
+    cached_secret = get_all_secrets(
+        client=secrets_manager_client, secret_name=secret_name
+    )
     assert cached_secret is secret, "Secrets caching not working as expected."
 
     print(

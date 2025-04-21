@@ -36,3 +36,8 @@ def dynamodb_client(table_name):
 def dynamo_table(table_name):
     """Fixture to initialize the DynamoDB table."""
     return boto3.resource("dynamodb").Table(table_name)
+
+
+@pytest.fixture
+def secrets_manager_client():
+    return boto3.client("secretsmanager", region_name="eu-west-3")
