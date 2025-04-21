@@ -1,4 +1,5 @@
 import json
+import platform
 from pathlib import Path
 
 import aws_cdk
@@ -22,14 +23,26 @@ class Lexigram(aws_cdk.Stack):
             self, "LexigramEnvSecrets", secret_name="my-env-secrets"
         )
 
+        current_arch = platform.machine().lower()
+        lambda_arch = (
+            aws_lambda.Architecture.ARM_64
+            if current_arch in ["arm64", "aarch64"]
+            else aws_lambda.Architecture.X86_64
+        )
+
+        print(
+            f"Detected architecture: {current_arch}, using Lambda architecture: {lambda_arch}"
+        )
+
         lambda_function = aws_lambda.DockerImageFunction(
             self,
             "LexigramLambdaFunction",
             code=aws_lambda.DockerImageCode.from_image_asset(
                 directory=str(Path("./").resolve()),
             ),
+            architecture=lambda_arch,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
-            timeout=aws_cdk.Duration.minutes(2),
+            timeout=aws_cdk.Duration.minutes(4),
             memory_size=512,
         )
 
