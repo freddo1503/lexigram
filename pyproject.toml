@@ -5,16 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "aws-cdk-lib>=2.190.0",
-    "aws-lambda-powertools>=3.10.0",
+    "aws-cdk-lib>=2.194.0",
+    "aws-lambda-powertools>=3.11.0",
     "aws-lambda-typing>=2.20.0",
     "beautifulsoup4>=4.13.4",
-    "boto3>=1.37.37",
+    "boto3>=1.38.7",
     "constructs>=10.4.2",
-    "crewai>=0.114.0",
+    "crewai>=0.118.0",
     "dotenv>=0.9.9",
-    "openai>=1.75.0",
-    "pydantic>=2.11.3",
+    "openai>=1.76.2",
+    "pydantic>=2.11.4",
     "requests>=2.32.3",
 ]
 
