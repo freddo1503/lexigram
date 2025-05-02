@@ -56,11 +56,13 @@ def get_env_var(key: str, default: Optional[str] = None) -> Optional[str]:
     return _secrets.get(key) or os.getenv(key, default)
 
 
-CLIENT_ID = get_env_var("CLIENT_ID")
-CLIENT_SECRET = get_env_var("CLIENT_SECRET")
-TOKEN_URL = get_env_var("TOKEN_URL", "https://sandbox-oauth.gouv.fr/api/oauth/token")
-BASE_URL = get_env_var(
-    "BASE_URL", "https://sandbox-api.gouv.fr/dila/legifrance/lf-engine-app"
+LEGIFRANCE_CLIENT_ID = get_env_var("LEGIFRANCE_CLIENT_ID")
+LEGIFRANCE_CLIENT_SECRET = get_env_var("LEGIFRANCE_CLIENT_SECRET")
+LEGIFRANCE_TOKEN_URL = get_env_var(
+    "LEGIFRANCE_TOKEN_URL", "https://sandbox-oauth.gouv.fr/api/oauth/token"
+)
+LEGIFRANCE_API_URL = get_env_var(
+    "LEGIFRANCE_API_URL", "https://sandbox-api.gouv.fr/dila/legifrance/lf-engine-app"
 )
 OPENAI_API_KEY = get_env_var("OPENAI_API_KEY")
 MISTRAL_API_KEY = get_env_var("MISTRAL_API_KEY")
@@ -68,10 +70,10 @@ ACCESS_TOKEN = get_env_var("ACCESS_TOKEN")
 DYNAMO_TABLE_NAME = get_env_var("DYNAMO_TABLE_NAME")
 
 api_client = LegifranceApiClient(
-    base_url=BASE_URL,
-    client_id=CLIENT_ID,
-    client_secret=CLIENT_SECRET,
-    token_url=TOKEN_URL,
+    base_url=LEGIFRANCE_API_URL,
+    client_id=LEGIFRANCE_CLIENT_ID,
+    client_secret=LEGIFRANCE_CLIENT_SECRET,
+    token_url=LEGIFRANCE_TOKEN_URL,
 )
 
 AGENTS_CONFIG_PATH = Path(__file__).parent / "config" / "agents.yml"

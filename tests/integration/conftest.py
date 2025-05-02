@@ -3,7 +3,13 @@ import dotenv
 import pytest
 
 from app.api_client import LegifranceApiClient
-from app.config import BASE_URL, CLIENT_ID, CLIENT_SECRET, DYNAMO_TABLE_NAME, TOKEN_URL
+from app.config import (
+    DYNAMO_TABLE_NAME,
+    LEGIFRANCE_API_URL,
+    LEGIFRANCE_CLIENT_ID,
+    LEGIFRANCE_CLIENT_SECRET,
+    LEGIFRANCE_TOKEN_URL,
+)
 from app.services.dynamo_utils import DynamoDBClient
 
 dotenv.load_dotenv()
@@ -12,10 +18,10 @@ dotenv.load_dotenv()
 @pytest.fixture(scope="session")
 def api_client():
     client = LegifranceApiClient(
-        base_url=BASE_URL,
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        token_url=TOKEN_URL,
+        base_url=LEGIFRANCE_API_URL,
+        client_id=LEGIFRANCE_CLIENT_ID,
+        client_secret=LEGIFRANCE_CLIENT_SECRET,
+        token_url=LEGIFRANCE_TOKEN_URL,
     )
     return client
 

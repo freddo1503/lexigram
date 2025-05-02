@@ -6,9 +6,9 @@ import requests
 from app.api_client import LegifranceApiClient
 from app.errors.exceptions import DataParsingError
 
-CLIENT_ID = "dummy_client_id"
-CLIENT_SECRET = "dummy_client_secret"
-TOKEN_URL = "http://dummy.token.url"
+LEGIFRANCE_CLIENT_ID = "dummy_client_id"
+LEGIFRANCE_CLIENT_SECRET = "dummy_client_secret"
+LEGIFRANCE_TOKEN_URL = "http://dummy.token.url"
 
 
 class DummyResponse:
@@ -52,9 +52,9 @@ def test_get_access_token_success(monkeypatch):
     client = LegifranceApiClient(
         base_url="http://dummy.api",
         token=None,
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        token_url=TOKEN_URL,
+        client_id=LEGIFRANCE_CLIENT_ID,
+        client_secret=LEGIFRANCE_CLIENT_SECRET,
+        token_url=LEGIFRANCE_TOKEN_URL,
     )
     assert client.token == "dummy_token"
 
@@ -65,7 +65,7 @@ def test_get_access_token_json_error(monkeypatch):
         LegifranceApiClient(
             base_url="http://dummy.api",
             token=None,
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET,
-            token_url=TOKEN_URL,
+            client_id=LEGIFRANCE_CLIENT_ID,
+            client_secret=LEGIFRANCE_CLIENT_SECRET,
+            token_url=LEGIFRANCE_TOKEN_URL,
         )
