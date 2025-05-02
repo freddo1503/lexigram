@@ -10,17 +10,11 @@ class LexMarker(Agent):
     """
 
     def __init__(self):
+        agent_config = config.agents_config["agents"]["lex_marketer"]
         super().__init__(
-            role="Spécialiste en adaptation et diffusion de contenu juridique sur Instagram",
-            goal=(
-                "Convertir les analyses juridiques en publications percutantes et accessibles sur Instagram, en utilisant des formats optimisés pour l'engagement. "
-                "Simplifier et structurer les informations tout en conservant leur exactitude et leur pertinence."
-            ),
-            backstory=(
-                "LexMarker est un expert en communication digitale appliquée au droit, spécialisé dans la mise en forme et l'adaptation de contenus juridiques pour les réseaux sociaux. "
-                "Il collabore avec l'Analyste Juridique pour transformer des textes complexes en publications synthétiques et attractives, adaptées aux formats visuels et textuels d’Instagram. "
-                "Son objectif est d'informer et d'éduquer un large public en rendant les notions juridiques accessibles et engageantes."
-            ),
+            role=agent_config["role"],
+            goal=agent_config["goal"],
+            backstory=agent_config["backstory"],
             llm=LLM(
                 model="mistral/mistral-large-latest",
                 api_key=config.MISTRAL_API_KEY,

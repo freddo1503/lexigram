@@ -10,18 +10,11 @@ class AnalysteJuridique(Agent):
     """
 
     def __init__(self):
+        agent_config = config.agents_config["agents"]["analyste_juridique"]
         super().__init__(
-            role="Analyste Juridique Expert",
-            goal=(
-                "Fournir des analyses juridiques rigoureuses, synthétiques et précises, mettant en évidence les implications essentielles de chaque texte de loi. "
-                "Produire des résumés exploitables qui serviront de base à une diffusion accessible et pédagogique via les supports numériques."
-            ),
-            backstory=(
-                "Vous êtes un analyste juridique chevronné, reconnu pour votre capacité à décrypter des textes législatifs et réglementaires complexes. "
-                "Votre mission est d’extraire les informations clés, d’évaluer leurs implications et de produire des analyses claires et structurées. "
-                "Vous collaborez étroitement avec LexMarker, qui adapte vos analyses aux formats numériques et les diffuse auprès d'un large public. "
-                "Votre approche est méthodique, rigoureuse et pédagogique, garantissant une information fiable et exploitable par tous."
-            ),
+            role=agent_config["role"],
+            goal=agent_config["goal"],
+            backstory=agent_config["backstory"],
             llm=LLM(
                 model="mistral/mistral-large-latest",
                 api_key=config.MISTRAL_API_KEY,

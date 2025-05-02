@@ -22,19 +22,15 @@ class DallETool(BaseTool):
 
     def _run(self, **kwargs) -> ImagePayload | str:
         client = OpenAI(api_key=config.OPENAI_API_KEY)
-
         image_description = kwargs.get("image_description")
-
         if not image_description:
             return "Image description is required."
-
         response = client.images.generate(
             model="dall-e-3",
             prompt=image_description,
             size="1024x1024",
             n=1,
         )
-
         return ImagePayload(
             image_url=response.data[0].url,
             image_description=response.data[0].revised_prompt,
@@ -48,18 +44,11 @@ class LexPictor(Agent):
     """
 
     def __init__(self):
+        agent_config = config.agents_config["agents"]["lex_pictor"]
         super().__init__(
-            role="Artiste Visuel Innovant",
-            goal=(
-                "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées, "
-                "visant à évoquer des émotions profondes et à communiquer des concepts complexes de manière accessible et esthétique."
-            ),
-            backstory=(
-                "LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques pour produire des illustrations "
-                "et des animations qui transcendent les formes d'art traditionnelles. Avec une formation en beaux-arts et une maîtrise des outils numériques modernes, "
-                "LexPictor fusionne créativité artistique et innovation technologique pour explorer de nouveaux horizons visuels. Son travail est reconnu pour sa capacité "
-                "à transformer des idées abstraites en représentations visuelles tangibles, engageant un large public et suscitant réflexion et admiration."
-            ),
+            role=agent_config["role"],
+            goal=agent_config["goal"],
+            backstory=agent_config["backstory"],
             llm=LLM(model="gpt-4", api_key=config.OPENAI_API_KEY),
             tools=[DallETool()],
             allow_delegation=False,

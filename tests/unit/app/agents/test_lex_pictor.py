@@ -2,8 +2,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.agents.lex_pictor import DallETool, LexPictor
-from app.models.lex_pictor import ImagePayload
+# Mock boto3 before importing any modules that use it
+with patch("boto3.client"):
+    from app.agents.lex_pictor import DallETool, LexPictor
+    from app.models.lex_pictor import ImagePayload
 
 
 class MockImageData:
@@ -72,6 +74,17 @@ def test_lex_pictor_initialization(mock_llm, mock_config):
     mock_config.OPENAI_API_KEY = "test_api_key"
     mock_llm_instance = MagicMock()
     mock_llm.return_value = mock_llm_instance
+
+    # Set up the mock for agents_config with proper string values
+    mock_config.agents_config = {
+        "agents": {
+            "lex_pictor": {
+                "role": "Artiste Visuel Innovant",
+                "goal": "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées",
+                "backstory": "LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques",
+            }
+        }
+    }
 
     agent = LexPictor()
 

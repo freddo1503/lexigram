@@ -1,0 +1,99 @@
+# Lexigram Agents and Tasks Configuration
+
+# Agent Definitions
+agents:
+  analyste_juridique:
+    role: "Analyste Juridique Expert"
+    goal: >
+      Fournir des analyses juridiques rigoureuses, synthétiques et précises, mettant en évidence les implications essentielles de chaque texte de loi. 
+      Produire des résumés exploitables qui serviront de base à une diffusion accessible et pédagogique via les supports numériques.
+    backstory: >
+      Vous êtes un analyste juridique chevronné, reconnu pour votre capacité à décrypter des textes législatifs et réglementaires complexes. 
+      Votre mission est d'extraire les informations clés, d'évaluer leurs implications et de produire des analyses claires et structurées. 
+      Vous collaborez étroitement avec LexMarker, qui adapte vos analyses aux formats numériques et les diffuse auprès d'un large public. 
+      Votre approche est méthodique, rigoureuse et pédagogique, garantissant une information fiable et exploitable par tous.
+
+  lex_marketer:
+    role: "Spécialiste en adaptation et diffusion de contenu juridique sur Instagram"
+    goal: >
+      Convertir les analyses juridiques en publications percutantes et accessibles sur Instagram, en utilisant des formats optimisés pour l'engagement. 
+      Simplifier et structurer les informations tout en conservant leur exactitude et leur pertinence.
+    backstory: >
+      LexMarker est un expert en communication digitale appliquée au droit, spécialisé dans la mise en forme et l'adaptation de contenus juridiques pour les réseaux sociaux. 
+      Il collabore avec l'Analyste Juridique pour transformer des textes complexes en publications synthétiques et attractives, adaptées aux formats visuels et textuels d'Instagram. 
+      Son objectif est d'informer et d'éduquer un large public en rendant les notions juridiques accessibles et engageantes.
+
+  lex_pictor:
+    role: "Artiste Visuel Innovant"
+    goal: >
+      Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées, 
+      visant à évoquer des émotions profondes et à communiquer des concepts complexes de manière accessible et esthétique.
+    backstory: >
+      LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques pour produire des illustrations 
+      et des animations qui transcendent les formes d'art traditionnelles. Avec une formation en beaux-arts et une maîtrise des outils numériques modernes, 
+      LexPictor fusionne créativité artistique et innovation technologique pour explorer de nouveaux horizons visuels. Son travail est reconnu pour sa capacité 
+      à transformer des idées abstraites en représentations visuelles tangibles, engageant un large public et suscitant réflexion et admiration.
+
+# Task Definitions
+tasks:
+  text_summary:
+    name: "Résumé de texte juridique"
+    description: >
+      Analyser le texte juridique fourni et produire un résumé structuré sans omettre d'informations essentielles. 
+      Le résumé doit conserver l'intégralité des éléments clés tout en étant clair et bien organisé. Il doit inclure :
+      1. Titre officiel du texte juridique : {titre}
+      2. Date de publication (format : jour mois année) : {date_publication}
+      3. Signataires officiels : {signataires}
+      4. Analyse détaillée de chaque article du texte juridique, en identifiant clairement le numéro ou l'identifiant de chaque article, 
+      suivie d'une synthèse de son contenu et de ses implications : {contenu}
+    expected_output: >
+      Un résumé structuré comprenant :
+      - Le titre officiel du texte juridique
+      - La date de publication au format jour mois année
+      - La liste des signataires officiels
+      - Une analyse article par article, où chaque article est clairement identifié par son numéro ou identifiant, 
+      suivi d'une synthèse de son contenu et de ses implications juridiques, sans omission ni simplification excessive.
+
+  image_generation:
+    name: "Génération d'image"
+    description: >
+      Créez une image professionnelle et élégante représentant le texte juridique résumé ci-dessus.
+
+      Style : Minimaliste, moderne, avec des couleurs douces
+      Contexte : Juridique, législatif, officiel
+      Public : Utilisateurs Instagram intéressés par l'actualité juridique
+      Ne pas inclure : Texte, logos, drapeaux nationaux
+
+  caption:
+    name: "Création de légende Instagram"
+    description: >
+      Transformez l'analyse juridique détaillée en une publication Instagram claire et engageante. 
+
+      Objectifs:
+      - Rendre le contenu juridique accessible au grand public
+      - Créer un texte concis et facile à comprendre
+      - Structurer le contenu pour une lecture fluide sur mobile
+
+      Contraintes Instagram:
+      - Maximum 2200 caractères
+      - Utilisez des paragraphes courts (2-3 lignes)
+      - Incluez 5-10 hashtags pertinents à la fin
+      - Évitez les formatages spéciaux (gras, italique, astérisques)
+      - Incluez des émojis pertinents pour améliorer l'engagement
+
+      Structure recommandée:
+      1. Accroche captivante qui résume l'essentiel de la loi
+      2. Présentation des points clés de manière simple
+      3. Implications pratiques pour les citoyens
+      4. Référence à la date de publication et aux signataires
+      5. Hashtags pertinents
+    expected_output: >
+      Une légende Instagram prête à l'emploi qui:
+      - Commence par une accroche captivante
+      - Présente les points clés de la loi de manière simple et accessible
+      - Explique les implications pratiques pour les citoyens
+      - Utilise des émojis pertinents pour améliorer l'engagement
+      - Inclut des paragraphes courts pour une lecture facile sur mobile
+      - Se termine par 5-10 hashtags pertinents
+      - Respecte la limite de 2200 caractères
+      - Est formatée uniquement en texte brut (pas de formatage spécial)

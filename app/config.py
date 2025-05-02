@@ -1,10 +1,12 @@
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Dict, Optional
 
 import boto3
 import dotenv
+import yaml
 
 from app.api_client import LegifranceApiClient
 
@@ -71,3 +73,27 @@ api_client = LegifranceApiClient(
     client_secret=CLIENT_SECRET,
     token_url=TOKEN_URL,
 )
+
+AGENTS_CONFIG_PATH = Path(__file__).parent / "config" / "agents.yml"
+
+
+def load_agents_config() -> dict[str, dict]:
+    """
+    Load the agents and tasks configuration from the YAML file.
+
+    Returns:
+        dict: The configuration dictionary with agents and tasks.
+    """
+    try:
+        with open(AGENTS_CONFIG_PATH, "r", encoding="utf-8") as file:
+            config = yaml.safe_load(file)
+        logger.debug(f"Agents configuration loaded from {AGENTS_CONFIG_PATH}")
+        return config
+    except Exception as e:
+        logger.error(
+            f"Error loading agents configuration from {AGENTS_CONFIG_PATH}: {e}"
+        )
+        return {"agents": {}, "tasks": {}}
+
+
+agents_config = load_agents_config()
