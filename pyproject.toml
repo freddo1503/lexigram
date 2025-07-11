@@ -16,7 +16,7 @@ dependencies = [
     "openai>=1.76.2",
     "pydantic>=2.11.4",
     "pydantic-settings>=2.10.1",
-    "pylegifrance>=1.2.0b1",
+    "pylegifrance>=1.2.1b1",
     "requests>=2.32.3",
 ]
 

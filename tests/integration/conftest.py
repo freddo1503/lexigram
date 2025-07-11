@@ -3,9 +3,7 @@ import dotenv
 import pytest
 from pylegifrance import ApiConfig, LegifranceClient
 
-from app.config import (
-    DYNAMO_TABLE_NAME,
-)
+from app.config import settings
 from app.services.dynamo_utils import DynamoDBClient
 
 dotenv.load_dotenv()
@@ -19,7 +17,7 @@ def api_client():
 
 @pytest.fixture(scope="function")
 def table_name():
-    table_name = DYNAMO_TABLE_NAME
+    table_name = settings.dynamo_table_name
     return table_name
 
 

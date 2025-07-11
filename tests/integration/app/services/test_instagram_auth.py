@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-import app.config as config
+from app.config import settings
 from app.services.instagram_auth import (
     InstagramTokenManager,
     get_refreshed_instagram_token,
@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 @pytest.mark.skipif(
     not (
-        config.INSTAGRAM_APP_ID and config.INSTAGRAM_APP_SECRET and config.ACCESS_TOKEN
+        settings.instagram_app_id
+        and settings.instagram_app_secret
+        and settings.access_token
     ),
     reason="Instagram credentials not configured - add INSTAGRAM_APP_SECRET to .env",
 )
@@ -23,9 +25,9 @@ class TestInstagramTokenManagerIntegration:
     def test_token_validation_with_real_api(self):
         """Test token validation with real Instagram API."""
         token_manager = InstagramTokenManager(
-            app_id=config.INSTAGRAM_APP_ID,
-            app_secret=config.INSTAGRAM_APP_SECRET,
-            current_token=config.ACCESS_TOKEN,
+            app_id=settings.instagram_app_id,
+            app_secret=settings.instagram_app_secret,
+            current_token=settings.access_token,
         )
 
         # Test with real API
@@ -38,9 +40,9 @@ class TestInstagramTokenManagerIntegration:
     def test_get_token_info_with_real_api(self):
         """Test getting token info from real Facebook API."""
         token_manager = InstagramTokenManager(
-            app_id=config.INSTAGRAM_APP_ID,
-            app_secret=config.INSTAGRAM_APP_SECRET,
-            current_token=config.ACCESS_TOKEN,
+            app_id=settings.instagram_app_id,
+            app_secret=settings.instagram_app_secret,
+            current_token=settings.access_token,
         )
 
         # Get token info from real API
@@ -59,9 +61,9 @@ class TestInstagramTokenManagerIntegration:
     def test_token_refresh_with_real_api(self):
         """Test token refresh with real Instagram/Facebook API."""
         token_manager = InstagramTokenManager(
-            app_id=config.INSTAGRAM_APP_ID,
-            app_secret=config.INSTAGRAM_APP_SECRET,
-            current_token=config.ACCESS_TOKEN,
+            app_id=settings.instagram_app_id,
+            app_secret=settings.instagram_app_secret,
+            current_token=settings.access_token,
         )
 
         # Try to refresh token
@@ -79,9 +81,9 @@ class TestInstagramTokenManagerIntegration:
     def test_ensure_valid_token_workflow(self):
         """Test the complete ensure_valid_token workflow."""
         token_manager = InstagramTokenManager(
-            app_id=config.INSTAGRAM_APP_ID,
-            app_secret=config.INSTAGRAM_APP_SECRET,
-            current_token=config.ACCESS_TOKEN,
+            app_id=settings.instagram_app_id,
+            app_secret=settings.instagram_app_secret,
+            current_token=settings.access_token,
         )
 
         # This should either return current token or refresh it
@@ -103,9 +105,9 @@ class TestInstagramTokenManagerIntegration:
         """Test the convenience function with real API."""
         try:
             valid_token = get_refreshed_instagram_token(
-                app_id=config.INSTAGRAM_APP_ID,
-                app_secret=config.INSTAGRAM_APP_SECRET,
-                current_token=config.ACCESS_TOKEN,
+                app_id=settings.instagram_app_id,
+                app_secret=settings.instagram_app_secret,
+                current_token=settings.access_token,
             )
 
             logger.info("Convenience function succeeded")
@@ -118,19 +120,19 @@ class TestInstagramTokenManagerIntegration:
 
 
 @pytest.mark.skipif(
-    not config.ACCESS_TOKEN, reason="ACCESS_TOKEN not configured in .env"
+    not settings.access_token, reason="ACCESS_TOKEN not configured in .env"
 )
 def test_token_manager_initialization():
     """Test token manager can be initialized with current config."""
     # Test that we can create a token manager
     token_manager = InstagramTokenManager(
-        app_id=config.INSTAGRAM_APP_ID or "test_app_id",
-        app_secret=config.INSTAGRAM_APP_SECRET or "test_secret",
-        current_token=config.ACCESS_TOKEN,
+        app_id=settings.instagram_app_id or "test_app_id",
+        app_secret=settings.instagram_app_secret or "test_secret",
+        current_token=settings.access_token,
     )
 
     assert token_manager.app_id is not None
-    assert token_manager.current_token == config.ACCESS_TOKEN
+    assert token_manager.current_token == settings.access_token
     assert token_manager.secret_name == "my-env-secrets"
     assert token_manager.token_key == "ACCESS_TOKEN"
 

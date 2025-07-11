@@ -1237,7 +1237,7 @@ requires-dist = [
     { name = "openai", specifier = ">=1.76.2" },
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
-    { name = "pylegifrance", specifier = ">=1.2.0b1" },
+    { name = "pylegifrance", specifier = ">=1.2.1b1" },
     { name = "requests", specifier = ">=2.32.3" },
 ]
 
@@ -2092,7 +2092,7 @@ wheels = [
 
 [[package]]
 name = "pylegifrance"
-version = "1.2.0b1"
+version = "1.2.1b1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dotenv" },
@@ -2100,9 +2100,9 @@ dependencies = [
     { name = "requests" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/26/3dabf674c04ece925a9add384c53bb94155cb05e9eb4fb596249411d1032/pylegifrance-1.2.0b1.tar.gz", hash = "sha256:94778a8c921255d24a01b6efe992cefea254c7cc1b8f67fdccfb3fabacdd2276", size = 73852, upload-time = "2025-07-11T10:17:13.405Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/ab/780bde7b74df98bf1fc659215afa7e861e50f0ef6c3817d6ca436679c5d5/pylegifrance-1.2.1b1.tar.gz", hash = "sha256:e250052dbd5dae455e7d4404ff5c534725f471ee3a12e732708bdb1844c6e4a8", size = 75876, upload-time = "2025-07-11T19:52:42.352Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/c1/28ca79f43fada92fb282c9594f28b8add30dd1ef6a198a2877e091e0a023/pylegifrance-1.2.0b1-py3-none-any.whl", hash = "sha256:228bafe8483e039d1b42255dbb478c9967366057a75f0fd475fa4ab87e616bf4", size = 82482, upload-time = "2025-07-11T10:17:11.973Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/72/8204e94301fb93da88d2cb45c33a6e9437ddcdcc6ffbf96f76be3f6dcf16/pylegifrance-1.2.1b1-py3-none-any.whl", hash = "sha256:649de6cbf16d7d0bc040984b1e97b1ec87f41c3be3fea2cded14d03f7cfe83d8", size = 84184, upload-time = "2025-07-11T19:52:40.809Z" },
 ]
 
 [[package]]

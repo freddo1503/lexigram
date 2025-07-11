@@ -68,21 +68,20 @@ def test_dalle_tool_run_missing_description():
     assert result == "Image description is required."
 
 
-@patch("app.agents.lex_pictor.config")
+@patch("app.agents.lex_pictor.agents_config")
+@patch("app.agents.lex_pictor.settings")
 @patch("app.agents.lex_pictor.LLM")
-def test_lex_pictor_initialization(mock_llm, mock_config):
-    mock_config.OPENAI_API_KEY = "test_api_key"
+def test_lex_pictor_initialization(mock_llm, mock_settings, mock_agents_config):
+    mock_settings.openai_api_key = "test_api_key"
     mock_llm_instance = MagicMock()
     mock_llm.return_value = mock_llm_instance
 
     # Set up the mock for agents_config with proper string values
-    mock_config.agents_config = {
-        "agents": {
-            "lex_pictor": {
-                "role": "Artiste Visuel Innovant",
-                "goal": "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées",
-                "backstory": "LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques",
-            }
+    mock_agents_config.__getitem__.return_value = {
+        "lex_pictor": {
+            "role": "Artiste Visuel Innovant",
+            "goal": "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées",
+            "backstory": "LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques",
         }
     }
 
