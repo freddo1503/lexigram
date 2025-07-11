@@ -4,7 +4,6 @@
 /__pycache__/
 /cdk.out/
 /cdk.context.json
-/.coverage
+.coverage*
 /coverage.json
 /htmlcov/
-/tests/unit/app/.coverage

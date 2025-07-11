@@ -14,12 +14,12 @@ from typing import Tuple
 from crewai import Task
 from crewai.tasks.task_output import TaskOutput
 
-from app import config
+from app.config import agents_config
 from app.models.lex_pictor import ImagePayload
 
-task_config = config.agents_config["tasks"]["text_summary"]
-image_task_config = config.agents_config["tasks"]["image_generation"]
-caption_task_config = config.agents_config["tasks"]["caption"]
+task_config = agents_config["tasks"]["text_summary"]
+image_task_config = agents_config["tasks"]["image_generation"]
+caption_task_config = agents_config["tasks"]["caption"]
 
 
 def validate_text_summary(output: TaskOutput) -> Tuple[bool, str]:
@@ -42,8 +42,8 @@ def validate_text_summary(output: TaskOutput) -> Tuple[bool, str]:
 
 text_summary = Task(
     name=task_config["name"],
-    description=config.agents_config["tasks"]["text_summary"]["description"],
-    expected_output=config.agents_config["tasks"]["text_summary"]["expected_output"],
+    description=agents_config["tasks"]["text_summary"]["description"],
+    expected_output=agents_config["tasks"]["text_summary"]["expected_output"],
     agent=None,
     guardrail=validate_text_summary,
     max_retries=2,

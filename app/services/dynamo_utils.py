@@ -1,13 +1,11 @@
 import logging
 import typing as t
-from datetime import datetime
 
 import boto3
 from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
 
-from app.models import loda
-from app.services.legifrance import fetch_loda_list
+# Removed imports for deleted modules - using PyLegifrance now
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,34 +66,52 @@ class DynamoDBClient:
             logger.error(f"Error scanning table: {e.response['Error']['Message']}")
             return []
 
-    def sync_new_law_to_dynamodb(self, law):
+    def sync_new_law_to_dynamodb(self, text_loda) -> bool:
         """
-        Syncs one law entry to DynamoDB.
-        """
-        text_id = law.id
-        date = law.lastUpdate.isoformat() if law.lastUpdate else None
+        Syncs one TextLoda object to DynamoDB.
+        Stores textId (from text_loda.id), date (extracted from id), and isProcessed.
 
-        existing_item = self.get_item(key={"textId": text_id})
-        if not existing_item:
-            item = {"textId": text_id, "date": date, "isProcessed": False}
-            self.put_item(item)
-            return
-        else:
+        Args:
+            text_loda: PyLegifrance TextLoda object
+
+        Returns:
+            bool: True if new law was added, False if it already existed
+        """
+        law_id = text_loda.id
+        if not law_id:
+            logger.warning("TextLoda missing id, skipping")
             return False
 
-    def sync_new_loda_entries_to_dynamodb(
-        self, api_client, payload: loda.RequestPayload
-    ):
-        """
-        Synchronizes multiple LODA entries to DynamoDB.
-        """
-        logger.info("Starting LODA entries synchronization...")
-        loda_response = fetch_loda_list(api_client, payload)
+        existing_item = self.get_item(key={"textId": law_id})
+        if not existing_item:
+            # Extract date from the TextLoda ID (format: LEGITEXT000051827204_02-07-2025)
+            date_part = None
+            if "_" in law_id:
+                date_part = law_id.split("_")[1]
 
+            item = {"textId": law_id, "date": date_part, "isProcessed": False}
+            self.put_item(item)
+            logger.debug(f"Added new law: {law_id}")
+            return True
+        else:
+            logger.debug(f"Law already exists: {law_id}")
+            return False
+
+    def sync_new_entries_to_dynamodb(self, text_lodas: t.List) -> str:
+        """
+        Synchronizes multiple TextLoda objects to DynamoDB.
+
+        Args:
+            text_lodas: List of PyLegifrance TextLoda objects
+
+        Returns:
+            str: Summary message of synchronization results
+        """
+        logger.info("Starting law entries synchronization...")
         sync_count = 0
 
-        for law in loda_response.results:
-            if self.sync_new_law_to_dynamodb(law):
+        for text_loda in text_lodas:
+            if self.sync_new_law_to_dynamodb(text_loda):
                 sync_count += 1
 
         logger.info(f"Synchronized {sync_count} new laws successfully.")
@@ -106,7 +122,7 @@ class DynamoDBClient:
         Retrieves the latest unprocessed law entry (`isProcessed=false`) from DynamoDB.
         Returns a dictionary with `textId` and `date` of the law.
         Example format:
-        {'date': '2025-03-15T00:00:00+00:00', 'textId': 'LEGITEXT000051331433'}
+        {'date': '02-07-2025', 'textId': 'LEGITEXT000051827204_02-07-2025'}
         """
         try:
             response = self.table.scan(
@@ -121,14 +137,15 @@ class DynamoDBClient:
             if not items:
                 return None
 
-            oldest_unprocessed = sorted(items, key=lambda x: x["date"])[0]
-
-            date_str = oldest_unprocessed.get("date")
-            law_date = datetime.fromisoformat(date_str).date() if date_str else None
+            # Sort by date if available, otherwise by textId
+            if items[0].get("date"):
+                oldest_unprocessed = sorted(items, key=lambda x: x.get("date", ""))[0]
+            else:
+                oldest_unprocessed = items[0]
 
             result = {
-                "date": law_date,
                 "textId": oldest_unprocessed.get("textId"),
+                "date": oldest_unprocessed.get("date"),
             }
             return result
         except ClientError as e:

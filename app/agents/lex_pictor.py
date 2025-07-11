@@ -5,7 +5,7 @@ from crewai.tools import BaseTool
 from openai import OpenAI
 from pydantic import BaseModel
 
-from app import config
+from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
 
 
@@ -21,7 +21,7 @@ class DallETool(BaseTool):
     args_schema: Type[BaseModel] = ImagePromptSchema
 
     def _run(self, **kwargs) -> ImagePayload | str:
-        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        client = OpenAI(api_key=settings.openai_api_key)
         image_description = kwargs.get("image_description")
         if not image_description:
             return "Image description is required."
@@ -44,12 +44,12 @@ class LexPictor(Agent):
     """
 
     def __init__(self):
-        agent_config = config.agents_config["agents"]["lex_pictor"]
+        agent_config = agents_config["agents"]["lex_pictor"]
         super().__init__(
             role=agent_config["role"],
             goal=agent_config["goal"],
             backstory=agent_config["backstory"],
-            llm=LLM(model="gpt-4", api_key=config.OPENAI_API_KEY),
+            llm=LLM(model="gpt-4", api_key=settings.openai_api_key),
             tools=[DallETool()],
             allow_delegation=False,
             verbose=True,

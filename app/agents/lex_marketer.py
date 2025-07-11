@@ -1,6 +1,6 @@
 from crewai import LLM, Agent
 
-from app import config
+from app.config import agents_config, settings
 
 
 class LexMarker(Agent):
@@ -10,14 +10,14 @@ class LexMarker(Agent):
     """
 
     def __init__(self):
-        agent_config = config.agents_config["agents"]["lex_marketer"]
+        agent_config = agents_config["agents"]["lex_marketer"]
         super().__init__(
             role=agent_config["role"],
             goal=agent_config["goal"],
             backstory=agent_config["backstory"],
             llm=LLM(
                 model="mistral/mistral-large-latest",
-                api_key=config.MISTRAL_API_KEY,
+                api_key=settings.mistral_api_key,
             ),
             allow_delegation=False,
             verbose=True,

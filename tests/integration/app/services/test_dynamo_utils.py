@@ -1,7 +1,7 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 
-from app.models import loda
-from app.services.legifrance import fetch_loda_list
+from pylegifrance.fonds.loda import Loda
+from pylegifrance.models.loda.search import SearchRequest
 
 
 def create_item(
@@ -12,24 +12,29 @@ def create_item(
     return {"textId": text_id, "date": ts, "isProcessed": is_processed}
 
 
-def test_sync_new_loda_entries_to_dynamodb(api_client, dynamodb_client, dynamo_table):
-    request_payload = loda.RequestPayload(
-        sort="PUBLICATION_DATE_DESC",
-        legalStatus=["VIGUEUR"],
-        pageNumber=1,
-        natures=["LOI"],
-        secondSort="PUBLICATION_DATE_DESC",
-        signatureDate=loda.DateRange(start=date(2024, 1, 1), end=date(2024, 2, 28)),
-        pageSize=5,
-    )
-    loda_response = None
-    try:
-        dynamodb_client.sync_new_loda_entries_to_dynamodb(
-            api_client=api_client, payload=request_payload
-        )
-        loda_response = fetch_loda_list(api_client=api_client, payload=request_payload)
+def test_sync_new_entries_to_dynamodb(api_client, dynamodb_client, dynamo_table):
+    # Create PyLegifrance LODA instance and search for laws
+    loda_api = Loda(api_client)
 
-        for law in loda_response.results:
+    search_request = SearchRequest(
+        natures=["LOI"],
+        page_number=1,
+        page_size=5,
+    )
+
+    laws = loda_api.search(search_request)
+
+    if not laws:
+        # Skip test if no laws found (API might be down or no results)
+        return
+
+    try:
+        # Sync TextLoda objects directly to DynamoDB
+        result = dynamodb_client.sync_new_entries_to_dynamodb(laws)
+        print(f"Sync result: {result}")
+
+        # Verify laws were inserted into DynamoDB
+        for law in laws:
             dynamo_response = dynamo_table.get_item(Key={"textId": law.id})
             assert "Item" in dynamo_response, (
                 f"Law with textId {law.id} not found in DynamoDB"
@@ -37,9 +42,9 @@ def test_sync_new_loda_entries_to_dynamodb(api_client, dynamodb_client, dynamo_t
             item = dynamo_response["Item"]
             assert item["textId"] == law.id
     finally:
-        if loda_response:
-            for law in loda_response.results:
-                dynamo_table.delete_item(Key={"textId": law.id})
+        # Cleanup
+        for law in laws:
+            dynamo_table.delete_item(Key={"textId": law.id})
 
 
 def test_put_item(dynamodb_client, dynamo_table):

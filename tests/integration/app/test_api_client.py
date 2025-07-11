@@ -6,4 +6,5 @@ def test_ping_endpoint(api_client):
 
     response = api_client.get("/consult/ping")
 
-    assert response == "pong", f"Unexpected response: {response}"
+    # PyLegifrance client returns Response object, need to get text
+    assert response.text == "pong", f"Unexpected response: {response.text}"
