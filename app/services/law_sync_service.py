@@ -5,7 +5,7 @@ from pylegifrance.fonds.loda import Loda
 from pylegifrance.models.generated.model import DatePeriod
 from pylegifrance.models.loda.search import SearchRequest
 
-from app.config import api_client
+from app.config import get_api_client
 from app.services.dynamo_utils import DynamoDBClient
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class LawSyncService:
     def __init__(self, dynamo_client: DynamoDBClient):
         self.dynamo_client = dynamo_client
-        self.loda_api = Loda(api_client)
+        self.loda_api = Loda(get_api_client())
 
     def sync_laws_for_year(self, year: int = None) -> int:
         """

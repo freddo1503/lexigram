@@ -107,6 +107,8 @@ class SettingsManager:
     def __init__(self):
         self._settings = LexigramSettings()
         self._load_secrets()
+        self._api_config = None
+        self._api_client = None
 
         # Configure logging
         logger.setLevel(self._settings.log_level)
@@ -123,18 +125,47 @@ class SettingsManager:
                 if field_name in settings_dict and settings_dict[field_name] is None:
                     setattr(self._settings, field_name, secret_value)
 
+                # Also set as environment variable for pylegifrance
+                if field_name == "legifrance_client_id":
+                    os.environ["LEGIFRANCE_CLIENT_ID"] = secret_value
+                elif field_name == "legifrance_client_secret":
+                    os.environ["LEGIFRANCE_CLIENT_SECRET"] = secret_value
+
     @property
     def settings(self) -> LexigramSettings:
         """Get the current settings instance."""
         return self._settings
+
+    @property
+    def api_config(self) -> ApiConfig:
+        """Get the API config instance, creating it if needed."""
+        if self._api_config is None:
+            self._api_config = ApiConfig.from_env()
+        return self._api_config
+
+    @property
+    def api_client(self) -> LegifranceClient:
+        """Get the API client instance, creating it if needed."""
+        if self._api_client is None:
+            self._api_client = LegifranceClient(self.api_config)
+        return self._api_client
 
 
 # Initialize the settings manager
 settings_manager = SettingsManager()
 settings = settings_manager.settings
 
-api_config = ApiConfig.from_env()
-api_client = LegifranceClient(api_config)
+
+# Lazy access to API config and client - accessed when needed
+def get_api_config() -> ApiConfig:
+    """Get the API config instance."""
+    return settings_manager.api_config
+
+
+def get_api_client() -> LegifranceClient:
+    """Get the API client instance."""
+    return settings_manager.api_client
+
 
 AGENTS_CONFIG_PATH = Path(__file__).parent / "config" / "agents.yml"
 
