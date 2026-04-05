@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import boto3
 import dotenv
@@ -79,7 +79,7 @@ _secrets_cache: Dict[str, Dict[str, str]] = {}
 
 
 def get_all_secrets(
-    client: boto3.client = None, secret_name: str = "my-env-secrets"
+    client: Optional[Any] = None, secret_name: str = "my-env-secrets"
 ) -> Dict[str, str]:
     """
     Retrieve all environment variables from AWS Secrets Manager and cache them.

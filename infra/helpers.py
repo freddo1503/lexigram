@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 
-def get_account_and_region(profile: str = None):
+def get_account_and_region(profile: str | None = None):
     """
     Get the AWS account ID and region using either an AWS profile or environment variables.
 

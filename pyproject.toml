@@ -27,17 +27,20 @@ timeout = 300
 
 [dependency-groups]
 dev = [
-    "black>=25.1.0",
-    "pre-commit>=4.1.0",
     "pytest>=8.3.4",
     "pytest-mock>=3.14.0",
     "pytest-cov>=4.1.0",
     "ruff>=0.9.6",
+    "ty",
 ]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.9",
 ]
+
+[tool.ty.environment]
+python-version = "3.12"
+extra-paths = ["infra"]
 
 [tool.ruff]
 line-length = 88

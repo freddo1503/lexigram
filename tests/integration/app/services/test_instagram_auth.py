@@ -26,7 +26,7 @@ class TestInstagramTokenManagerIntegration:
         """Test token validation with real Instagram API."""
         token_manager = InstagramTokenManager(
             app_id=settings.instagram_app_id,
-            app_secret=settings.instagram_app_secret,
+            app_secret=settings.instagram_app_secret or "",
             current_token=settings.access_token,
         )
 
@@ -41,7 +41,7 @@ class TestInstagramTokenManagerIntegration:
         """Test getting token info from real Facebook API."""
         token_manager = InstagramTokenManager(
             app_id=settings.instagram_app_id,
-            app_secret=settings.instagram_app_secret,
+            app_secret=settings.instagram_app_secret or "",
             current_token=settings.access_token,
         )
 
@@ -62,7 +62,7 @@ class TestInstagramTokenManagerIntegration:
         """Test token refresh with real Instagram/Facebook API."""
         token_manager = InstagramTokenManager(
             app_id=settings.instagram_app_id,
-            app_secret=settings.instagram_app_secret,
+            app_secret=settings.instagram_app_secret or "",
             current_token=settings.access_token,
         )
 
@@ -82,7 +82,7 @@ class TestInstagramTokenManagerIntegration:
         """Test the complete ensure_valid_token workflow."""
         token_manager = InstagramTokenManager(
             app_id=settings.instagram_app_id,
-            app_secret=settings.instagram_app_secret,
+            app_secret=settings.instagram_app_secret or "",
             current_token=settings.access_token,
         )
 
@@ -106,7 +106,7 @@ class TestInstagramTokenManagerIntegration:
         try:
             valid_token = get_refreshed_instagram_token(
                 app_id=settings.instagram_app_id,
-                app_secret=settings.instagram_app_secret,
+                app_secret=settings.instagram_app_secret or "",
                 current_token=settings.access_token,
             )
 

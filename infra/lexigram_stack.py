@@ -50,7 +50,7 @@ class Lexigram(aws_cdk.Stack):
         lambda_function.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["secretsmanager:GetSecretValue"],
-                resources=[secret.secret_arn],
+                resources=[secret.secret_arn] if secret.secret_arn else [],
             )
         )
 
@@ -61,7 +61,10 @@ class Lexigram(aws_cdk.Stack):
                 minute="30", hour="11", week_day="MON-FRI"
             ),
         )
-        rule.add_target(aws_events_targets.LambdaFunction(lambda_function))
+        target = aws_events_targets.LambdaFunction(
+            lambda_function  # ty: ignore[invalid-argument-type]
+        )
+        rule.add_target(target)  # ty: ignore[invalid-argument-type]
 
 
 class SecretsManagerConstruct(Construct):

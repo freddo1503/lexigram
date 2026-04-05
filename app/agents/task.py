@@ -9,7 +9,7 @@ Each task is responsible for a specific part of the legal text processing pipeli
 """
 
 import re
-from typing import Tuple
+from typing import Tuple, cast
 
 from crewai import Task
 from crewai.tasks.task_output import TaskOutput
@@ -51,10 +51,10 @@ text_summary = Task(
 )
 
 
-def validate_image_payload(output: TaskOutput) -> Tuple[bool, TaskOutput]:
+def validate_image_payload(output: TaskOutput) -> Tuple[bool, TaskOutput | str]:
     if not output.pydantic:
         return False, "L'output n'est pas au format attendu (ImagePayload)"
-    payload = output.pydantic
+    payload = cast(ImagePayload, output.pydantic)
     if not payload.image_url:
         return False, "L'URL de l'image est vide"
     if not payload.image_description:

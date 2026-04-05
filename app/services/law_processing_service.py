@@ -46,6 +46,11 @@ class LawProcessingService:
         """
         try:
             law_details = self.loda_api.fetch(text_id)
+            if law_details is None:
+                raise LegifranceError(
+                    "Legifrance returned no data",
+                    details={"law_id": text_id},
+                )
             logger.info(f"Successfully fetched law details: {law_details.titre}")
             return law_details
         except Exception as e:

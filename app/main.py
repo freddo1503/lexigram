@@ -30,6 +30,8 @@ def main():
     """
     try:
         logger.info("Starting Lexigram workflow")
+        if not settings.dynamo_table_name:
+            raise LexigramError("DynamoDB table name is not configured")
         dynamo_client = DynamoDBClient(settings.dynamo_table_name)
 
         # Initialize services

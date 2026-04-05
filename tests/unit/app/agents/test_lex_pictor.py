@@ -90,6 +90,7 @@ def test_lex_pictor_initialization(mock_llm, mock_settings, mock_agents_config):
     assert agent.role == "Artiste Visuel Innovant"
     assert "Créer des oeuvres d'art visuelles captivantes" in agent.goal
     assert "LexPictor est un artiste visuel passionné" in agent.backstory
+    assert agent.tools is not None
     assert len(agent.tools) == 1
     assert isinstance(agent.tools[0], DallETool)
     assert agent.allow_delegation is False

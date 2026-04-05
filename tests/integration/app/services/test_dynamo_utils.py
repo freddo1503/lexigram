@@ -1,11 +1,12 @@
 from datetime import UTC, datetime
+from typing import Optional
 
 from pylegifrance.fonds.loda import Loda
 from pylegifrance.models.loda.search import SearchRequest
 
 
 def create_item(
-    text_id: str, timestamp: datetime = None, is_processed: bool = False
+    text_id: str, timestamp: Optional[datetime] = None, is_processed: bool = False
 ) -> dict:
     """Helper function to create a DynamoDB item."""
     ts = (timestamp or datetime.now(UTC)).isoformat()

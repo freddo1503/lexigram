@@ -1,0 +1,8 @@
+pre-commit:
+  commands:
+    lint-fix:
+      glob: "*.py"
+      run: just lint-fix
+    format:
+      glob: "*.py"
+      run: just format

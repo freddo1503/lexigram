@@ -44,7 +44,7 @@ def classify_http_error(response: requests.Response, api_name: str = "API") -> A
     Returns:
         An appropriate APIError subclass instance.
     """
-    status_code = response.status_code
+    status_code: int = response.status_code  # ty: ignore[invalid-assignment]
     error_message = f"{api_name} request failed with status code {status_code}"
 
     try:

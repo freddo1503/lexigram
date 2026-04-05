@@ -28,7 +28,10 @@ def extract_coverage_from_html():
         files_data = {}
         for row in soup.select("table.index tbody tr.region"):
             try:
-                file_path = row.select_one("td.name a").text
+                name_el = row.select_one("td.name a")
+                if name_el is None:
+                    continue
+                file_path = name_el.text
                 statements = int(row.select("td")[1].text)
                 missing = int(row.select("td")[2].text)
                 excluded = int(row.select("td")[3].text)
@@ -52,6 +55,8 @@ def extract_coverage_from_html():
         # Extract totals from the footer
         try:
             total_row = soup.select_one("table.index tfoot tr.total")
+            if total_row is None:
+                raise ValueError("Coverage footer row not found")
             total_statements = int(total_row.select("td")[1].text)
             total_missing = int(total_row.select("td")[2].text)
             total_excluded = int(total_row.select("td")[3].text)

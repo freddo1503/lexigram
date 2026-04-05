@@ -31,9 +31,12 @@ class DallETool(BaseTool):
             size="1024x1024",
             n=1,
         )
+        if not response.data:
+            return "Image generation returned no data."
+        image = response.data[0]
         return ImagePayload(
-            image_url=response.data[0].url,
-            image_description=response.data[0].revised_prompt,
+            image_url=image.url or "",
+            image_description=image.revised_prompt or "",
         )
 
 

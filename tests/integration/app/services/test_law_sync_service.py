@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pylegifrance.models.generated.model import DatePeriod
 from pylegifrance.models.loda.search import SearchRequest
 
@@ -14,7 +16,9 @@ def test_law_sync_service_integration(api_client, dynamodb_client):
         natures=["LOI"],
         page_number=1,
         page_size=5,  # Small page size for testing
-        date_publication=DatePeriod(start="2025-01-01", end="2025-12-31"),
+        date_publication=DatePeriod(
+            start=datetime(2025, 1, 1), end=datetime(2025, 12, 31)
+        ),
     )
 
     # Get laws and sync them

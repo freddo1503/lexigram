@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Optional
 
 from pylegifrance.fonds.loda import Loda
 from pylegifrance.models.generated.model import DatePeriod
@@ -16,7 +17,7 @@ class LawSyncService:
         self.dynamo_client = dynamo_client
         self.loda_api = Loda(get_api_client())
 
-    def sync_laws_for_year(self, year: int = None) -> int:
+    def sync_laws_for_year(self, year: Optional[int] = None) -> int:
         """
         Synchronize laws from Legifrance for a given year based on publication date.
 
@@ -39,7 +40,9 @@ class LawSyncService:
                 natures=["LOI"],
                 page_number=page_number,
                 page_size=10,
-                date_publication=DatePeriod(start=f"{year}-01-01", end=f"{year}-12-31"),
+                date_publication=DatePeriod(
+                    start=datetime(year, 1, 1), end=datetime(year, 12, 31)
+                ),
             )
 
             laws = self.loda_api.search(search_request)
