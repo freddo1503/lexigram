@@ -1,7 +1,7 @@
 = Instagram Authentication
 :description: Token management, long-lived token refresh, AWS Secrets Manager storage.
 
-Token lifecycle management is in `app/services/instagram_auth.py` (611 lines).
+Token lifecycle management is in `app/services/instagram_auth.py`.
 
 == InstagramTokenManager
 
@@ -32,7 +32,7 @@ Flow:
 . `get_app_access_token()` -- client credentials grant
 . `list_business_managers(app_token)` -- find associated business
 . `create_system_user(business_id, app_token)` -- create system user
-. `generate_system_user_token(business_id, system_user_id, app_token)` -- generate permanent token with `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `pages_read_engagement` scopes
+. `generate_system_user_token(business_id, system_user_id, app_token)` -- generate permanent token with `instagram_business_basic`, `instagram_business_content_publish` scopes
 . `get_instagram_business_account(token)` -- verify Instagram access
 
 Orchestrated by `create_permanent_instagram_token(business_id)`.

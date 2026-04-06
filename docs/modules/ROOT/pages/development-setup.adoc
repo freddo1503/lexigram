@@ -40,7 +40,7 @@ Create a `.env` file at project root with required secrets (see xref:configurati
 |`just type-check` |Type check with ty
 |`just deploy` |Deploy CDK stack
 |`just docs-build` |Build Antora docs
-|`just docs-serve` |Build and serve docs locally (port 8000)
+|`just docs-serve` |Build and serve docs locally (port 8010)
 |`just docs-deploy` |Build docs (CI handles deployment)
 |`just setup-hooks` |Install lefthook git hooks
 |===

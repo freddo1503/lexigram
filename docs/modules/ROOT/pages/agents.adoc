@@ -10,9 +10,9 @@ All agents load their role, goal, and backstory from `app/config/agents.yml` (wr
 |===
 |Agent |Class |LLM |Tools |Delegation
 
-|AnalysteJuridique |`app/agents/lex_analyst.py` |Mistral Large |None |No
-|LexPictor |`app/agents/lex_pictor.py` |GPT-4 |DalleTool |No
-|LexMarker |`app/agents/lex_marketer.py` |Mistral Large |None |No
+|AnalysteJuridique |`app/agents/lex_analyst.py` |Mistral Large |None |Default (not set)
+|LexPictor |`app/agents/lex_pictor.py` |GPT-4 |DalleTool |No (`allow_delegation=False`)
+|LexMarker |`app/agents/lex_marketer.py` |Mistral Large |None |No (`allow_delegation=False`)
 |===
 
 == AnalysteJuridique

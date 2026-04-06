@@ -1,7 +1,7 @@
 = Configuration
 :description: LexigramSettings (Pydantic), SettingsManager, env vars, agents.yml loading.
 
-Configuration is centralized in `app/config.py` (192 lines).
+Configuration is centralized in `app/config.py`.
 
 == LexigramSettings
 
@@ -28,7 +28,7 @@ Pydantic `BaseSettings` with field validation.
 Singleton pattern managing settings + API clients.
 
 * `settings` property: returns `LexigramSettings` instance
-* `api_config` property: creates `pylegifrance.ApiConfig()`
+* `api_config` property: creates `pylegifrance.ApiConfig.from_env()` (reads credentials from environment variables)
 * `api_client` property: creates `pylegifrance.LegifranceClient(api_config)`
 
 === Secret Loading
@@ -57,6 +57,25 @@ agents_config = load_agents_config()
 ----
 
 These are imported throughout the codebase via `from app.config import settings, agents_config`.
+
+=== Lazy API Accessors
+
+Two module-level functions provide lazy access to the pylegifrance API client:
+
+[source,python]
+----
+get_api_config()   # -> ApiConfig (via settings_manager.api_config)
+get_api_client()   # -> LegifranceClient (via settings_manager.api_client)
+----
+
+Used by services like `LawSyncService` and `LawProcessingService` instead of importing the client directly.
+
+== Environment Variable Defaults
+
+At module load time, `app/config.py` sets two default environment variables:
+
+* `OTEL_SDK_DISABLED=true` -- disables OpenTelemetry SDK (avoids instrumentation overhead)
+* `CREWAI_STORAGE_DIR=/tmp` -- directs CrewAI storage to `/tmp` (required for Lambda's read-only filesystem)
 
 == Local Development
 

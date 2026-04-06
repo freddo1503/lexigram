@@ -5,7 +5,7 @@ The crew is assembled in `app/agents/crew.py` and executed in `app/services/law_
 
 == Crew Assembly
 
-`create_crew()` in `app/agents/crew.py` (19 lines):
+`create_crew()` in `app/agents/crew.py`:
 
 . Instantiates three agents: `AnalysteJuridique()`, `LexPictor()`, `LexMarker()`
 . Assigns each agent to its task: `text_summary.agent = lex_analyst`, etc.
@@ -21,9 +21,9 @@ The crew uses CrewAI's default *sequential* process -- tasks run in list order.
 |===
 |Input key |Source
 
-|`titre` |`law_details.title` (law title from Legifrance)
-|`date_publication` |`law_info["date"]` (from DynamoDB record)
-|`signataires` |`law_details.signers` (official signatories)
+|`titre` |`law_details.titre` (law title from Legifrance, or `"Titre non disponible"`)
+|`date_publication` |`law_details.date_publication.strftime("%d/%m/%Y")` (from Legifrance TexteLoda, or `"Date non disponible"`)
+|`signataires` |Extracted from `law_details._texte.consult_response.signers` if available, otherwise empty string
 |`contenu` |Cleaned article text from `_format_law_content()`
 |===
 

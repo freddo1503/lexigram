@@ -10,6 +10,9 @@ It grows incrementally through usage: after researching codebase questions, find
 |===
 |Page |Summary
 
+|xref:vision.adoc[Project Vision]
+|Mission, audience, scope, success criteria, identity, and analysis methodology.
+
 |xref:system-overview.adoc[System Overview]
 |What Lexigram is, high-level architecture, and tech stack.
 

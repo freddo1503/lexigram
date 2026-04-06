@@ -1,7 +1,7 @@
 = Prompt Engineering
 :description: Agent prompt design in French, caption rules, image style guidelines.
 
-Agent prompts are defined in `app/config/agents.yml` (99 lines), written entirely in French.
+Agent prompts are defined in `app/config/agents.yml`, written entirely in French.
 Task guardrails are enforced in `app/agents/task.py`.
 
 == Design Principles

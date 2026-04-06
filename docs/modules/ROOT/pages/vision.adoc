@@ -1,0 +1,79 @@
+= Project Vision
+:description: Mission, target audience, scope, success criteria, identity, and analysis methodology.
+
+== Mission
+
+Make French legislation accessible and understandable to the general public by transforming dense legal texts into clear, visual summaries published on Instagram.
+
+== Problem
+
+French citizens face a dual gap:
+
+. *Awareness:* most citizens never learn that new laws have been passed.
+. *Comprehension:* even when they do encounter legislation, the legal language is impenetrable.
+
+Lexigram bridges both gaps by bringing digestible summaries to where people already spend time.
+
+== Target Audience
+
+The general French public -- everyday citizens who want to understand new laws affecting their lives.
+
+== Channel
+
+Instagram is the deliberate and sole distribution channel -- not a stepping stone to multi-platform.
+
+== Scope
+
+The vision encompasses all impactful legislative texts: laws, decrees, ordinances.
+The current implementation starts with laws (`LOI`) only -- phased approach.
+
+== Success Criteria
+
+[%header,cols="1,2"]
+|===
+|Criterion |Definition
+
+|*Coverage*
+|Every new legislative text gets summarized and published -- no gaps.
+
+|*Comprehension quality*
+|Summaries are accurate, accessible, and genuinely help people understand the law.
+|===
+
+Engagement metrics (likes, followers) are secondary.
+The mission is coverage and quality, not virality.
+
+== Identity
+
+Lexigram is a *civic utility with an educational tone* -- a neutral, informative public service that empowers citizens.
+Not opinionated, not sensationalist.
+
+== Analysis Methodology
+
+=== Citizen-First Framing
+
+The analysis leads with "how does this affect you" for citizen-impacting laws.
+For institutional laws (treaties, parliamentary procedures, government reorganization), the framing adapts to informational -- no forced citizen-impact angle.
+
+The agent adapts its lens based on the nature of the law.
+
+=== Delta-Aware Analysis
+
+For *amending laws* (laws that modify existing legislation), the analysis highlights what changed versus the previous version.
+The pipeline uses `TexteLoda.format_modifications_report()` from pylegifrance as input to identify modifications, creations, and abrogations.
+
+For *standalone new laws*, the analysis focuses on impact explanation without a delta.
+
+=== Merged Format
+
+A single analysis weaves key legal facts (title, date, context) with the impact explanation.
+Not a separate legal breakdown followed by a citizen summary -- one integrated narrative.
+
+=== No Advice
+
+Lexigram informs and explains.
+It never recommends action or tells people what to do.
+
+=== Evolution Path
+
+Future enhancement: use `TexteLoda.get_modified_articles()` combined with `Code.fetch_article().at(date)` to fetch actual before/after article text for deep article-level comparison.

@@ -62,7 +62,7 @@ NOTE: Requires GitHub Pages source set to "GitHub Actions" (not branch-based).
 
 == Dockerfile
 
-Multi-stage Docker build (28 lines):
+Multi-stage Docker build:
 
 . *Stage 1:* Copy `uv` binary from `ghcr.io/astral-sh/uv`
 . *Stage 2:* Install dependencies with `uv export --frozen | uv pip install`

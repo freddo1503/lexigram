@@ -2,7 +2,7 @@
 :description: DynamoDBClient CRUD, textId format, isProcessed flag, scan for unprocessed laws.
 
 DynamoDB is used to track which laws have been synced and processed.
-Client wrapper in `app/services/dynamo_utils.py` (155 lines).
+Client wrapper in `app/services/dynamo_utils.py`.
 Table construct in `infra/dynamo_db_table.py`.
 
 == Table Schema

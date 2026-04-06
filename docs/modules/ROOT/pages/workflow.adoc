@@ -27,9 +27,9 @@ The daily workflow runs in `app/main.py:main()`, triggered by EventBridge via `a
 
 `LawProcessingService.fetch_law_details(text_id)` retrieves the full law content from Legifrance.
 
-* Extracts the Legifrance text ID from the composite `textId` (format: `LEGITEXT000051827204_02-07-2025`)
-* Calls `Loda.fetch()` to get the full `TexteLoda` object
-* Returns articles, title, signatories, publication date
+* Passes the `textId` directly to `Loda.fetch()` (pylegifrance handles ID resolution)
+* Returns the full `TexteLoda` object with articles, title, signatories, publication date
+* Raises `LegifranceError` if the law cannot be found or fetched
 
 === Step 4: Process and Publish
 
@@ -42,7 +42,7 @@ The daily workflow runs in `app/main.py:main()`, triggered by EventBridge via `a
   ** `tasks_output[1].pydantic` -> `ImagePayload` (image URL + revised prompt)
   ** `tasks_output[2].raw` -> Instagram caption text
 . Publish to Instagram: create media -> wait for processing -> publish post
-. Comment with Legifrance URL: `pass:[https://www.legifrance.gouv.fr/jorf/id/{jorf_id}]`
+. Comment with Legifrance URL: `pass:[https://www.legifrance.gouv.fr/jorf/id/{law_details.cid}]` (if `cid` is available)
 . Mark law as processed in DynamoDB: `update_item({isProcessed: true})`
 
 == Error Handling

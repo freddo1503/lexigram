@@ -56,7 +56,7 @@ docs-build:
 
 # Serve docs locally
 docs-serve:
-    npx antora --fetch antora-playbook.yml && python3 -m http.server -d build/site 8000
+    npx antora --fetch antora-playbook.yml && python3 -m http.server -d build/site 8010
 
 # Deploy docs (CI handles GitHub Pages deployment)
 docs-deploy:

@@ -3,8 +3,8 @@
 
 Error handling is defined across two files:
 
-* `app/errors/exceptions.py` (156 lines) -- exception hierarchy
-* `app/errors/handlers.py` (265 lines) -- retry, classification, safe wrappers
+* `app/errors/exceptions.py` -- exception hierarchy
+* `app/errors/handlers.py` -- retry, classification, safe wrappers
 
 == Exception Hierarchy
 

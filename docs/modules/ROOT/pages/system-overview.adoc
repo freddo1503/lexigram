@@ -1,8 +1,11 @@
 = System Overview
 :description: What Lexigram is, high-level architecture, and tech stack.
 
-Lexigram is an AI-powered multi-agent system that summarizes French legislation and publishes daily Instagram posts.
-It runs as an AWS Lambda function triggered by EventBridge on weekdays at 11:30 UTC.
+Lexigram makes French legislation accessible and understandable to the general public.
+It transforms dense legal texts into clear, visual summaries published daily on Instagram.
+See xref:vision.adoc[Project Vision] for the full mission, audience, and methodology.
+
+Technically, it runs as an AWS Lambda function triggered by EventBridge on weekdays at 11:30 UTC.
 
 == What It Does
 

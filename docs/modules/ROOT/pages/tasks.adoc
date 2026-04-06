@@ -61,7 +61,7 @@ Creates an Instagram-ready caption from the legal summary.
 
 |Min words |20
 |Max characters |2200 (Instagram limit)
-|Hashtags |5-10 required, max 30
+|Hashtags |Min 5 required, max 30 (agent prompt recommends 5-10)
 |Emojis |At least 1 required
 |Formatting |No `*` or `_` characters (plain text only)
 |===

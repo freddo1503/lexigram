@@ -5,7 +5,7 @@ Infrastructure is defined in `infra/` using AWS CDK (Python).
 
 == Stack: Lexigram
 
-`infra/lexigram_stack.py` (102 lines) -- single CDK stack.
+`infra/lexigram_stack.py` -- single CDK stack.
 
 === Components
 
@@ -31,10 +31,11 @@ Infrastructure is defined in `infra/` using AWS CDK (Python).
 
 === Lambda Configuration
 
-* *Architecture:* Auto-detected (ARM64 or X86_64 based on build machine via `infra/helpers.py`)
+* *Architecture:* Auto-detected (ARM64 or X86_64 based on build machine via `platform.machine()`)
 * *Handler:* `app.handler.handler`
 * *Docker:* Built from project root `Dockerfile`
-* *Environment variable:* `DYNAMO_TABLE_NAME` set to the created table name
+
+NOTE: `DYNAMO_TABLE_NAME` is not set as a Lambda environment variable in the CDK stack. It is loaded from AWS Secrets Manager at runtime (via `.env` -> Secrets Manager at deploy time).
 
 === Secrets Manager Construct
 

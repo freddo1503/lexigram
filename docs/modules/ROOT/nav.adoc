@@ -1,4 +1,5 @@
 * xref:index.adoc[Knowledge Base Index]
+* xref:vision.adoc[Project Vision]
 * xref:system-overview.adoc[System Overview]
 * xref:workflow.adoc[Daily Workflow]
 * xref:agents.adoc[AI Agents]
