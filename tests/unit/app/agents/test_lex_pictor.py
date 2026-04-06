@@ -4,67 +4,65 @@ import pytest
 
 # Mock boto3 before importing any modules that use it
 with patch("boto3.client"):
-    from app.agents.lex_pictor import DallETool, LexPictor
+    from app.agents.lex_pictor import LexPictor, MistralImageTool
     from app.models.lex_pictor import ImagePayload
 
 
-class MockImageData:
-    def __init__(self, url, revised_prompt):
-        self.url = url
-        self.revised_prompt = revised_prompt
-
-
-class MockImageResponse:
-    def __init__(self, data):
-        self.data = data
-
-
 @pytest.fixture
-def mock_openai_client():
-    with patch("app.agents.lex_pictor.OpenAI") as mock_openai:
+def mock_mistral_client():
+    with patch("app.agents.lex_pictor.Mistral") as mock_mistral:
         mock_client = MagicMock()
-        mock_openai.return_value = mock_client
+        mock_mistral.return_value = mock_client
         yield mock_client
 
 
-def test_dalle_tool_run_success(mock_openai_client):
-    mock_image_data = MockImageData(
-        url="https://example.com/image.jpg",
-        revised_prompt="A beautiful landscape with mountains",
-    )
-    mock_response = MockImageResponse(data=[mock_image_data])
-    mock_openai_client.images.generate.return_value = mock_response
-
-    tool = DallETool()
-    result = tool._run(image_description="A landscape")
-
-    assert result, "The result should not be empty"
-
-    # Verify the result is an ImagePayload object
-    assert isinstance(result, ImagePayload), (
-        "The result should be an ImagePayload object"
-    )
-
-    # Validate the ImagePayload properties
-    assert result.image_url == "https://example.com/image.jpg", (
-        "The image_url should match the mock data"
-    )
-    assert result.image_description == "A beautiful landscape with mountains", (
-        "The image_description should match the mock data"
-    )
-
-    mock_openai_client.images.generate.assert_called_once_with(
-        model="dall-e-3",
-        prompt="A landscape",
-        size="1024x1024",
-        n=1,
-    )
+@pytest.fixture
+def mock_s3_client():
+    with patch("app.agents.lex_pictor.boto3") as mock_boto3:
+        mock_s3 = MagicMock()
+        mock_boto3.client.return_value = mock_s3
+        yield mock_s3
 
 
-@patch("app.agents.lex_pictor.OpenAI")
-def test_dalle_tool_run_missing_description(mock_openai):
-    mock_openai.return_value = MagicMock()
-    tool = DallETool()
+def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
+    # Mock agent creation
+    mock_agent = MagicMock()
+    mock_agent.id = "agent-123"
+    mock_mistral_client.beta.agents.create.return_value = mock_agent
+
+    # Mock conversation response with file_id
+    mock_output = MagicMock()
+    mock_output.file_id = "file-456"
+    mock_response = MagicMock()
+    mock_response.outputs = [mock_output]
+    mock_mistral_client.beta.conversations.start.return_value = mock_response
+
+    # Mock file download
+    mock_file = MagicMock()
+    mock_file.read.return_value = b"fake-png-data"
+    mock_mistral_client.files.download.return_value = mock_file
+
+    tool = MistralImageTool()
+    with patch("app.agents.lex_pictor.settings") as mock_settings:
+        mock_settings.mistral_api_key = "test-key"
+        mock_settings.s3_bucket_name = "test-bucket"
+        result = tool._run(image_description="A legal scene")
+
+    assert isinstance(result, ImagePayload)
+    assert "test-bucket" in result.image_url
+    assert result.image_url.endswith(".png")
+    assert result.image_description == "A legal scene"
+
+    mock_s3_client.put_object.assert_called_once()
+    call_kwargs = mock_s3_client.put_object.call_args[1]
+    assert call_kwargs["Bucket"] == "test-bucket"
+    assert call_kwargs["ContentType"] == "image/png"
+
+
+@patch("app.agents.lex_pictor.Mistral")
+def test_mistral_image_tool_run_missing_description(mock_mistral):
+    mock_mistral.return_value = MagicMock()
+    tool = MistralImageTool()
     result = tool._run()
 
     assert result == "Image description is required."
@@ -73,14 +71,13 @@ def test_dalle_tool_run_missing_description(mock_openai):
 @patch("app.agents.lex_pictor.agents_config")
 @patch("app.agents.lex_pictor.settings")
 def test_lex_pictor_initialization(mock_settings, mock_agents_config):
-    mock_settings.openai_api_key = "test_api_key"
+    mock_settings.mistral_api_key = "test_api_key"
 
-    # Set up the mock for agents_config with proper string values
     mock_agents_config.__getitem__.return_value = {
         "lex_pictor": {
             "role": "Artiste Visuel Innovant",
-            "goal": "Créer des oeuvres d'art visuelles captivantes et originales en utilisant des techniques numériques avancées",
-            "backstory": "LexPictor est un artiste visuel passionné, spécialisé dans l'intégration de technologies numériques",
+            "goal": "Créer des oeuvres d'art visuelles captivantes et originales",
+            "backstory": "LexPictor est un artiste visuel passionné",
         }
     }
 
@@ -91,18 +88,39 @@ def test_lex_pictor_initialization(mock_settings, mock_agents_config):
     assert "LexPictor est un artiste visuel passionné" in agent.backstory
     assert agent.tools is not None
     assert len(agent.tools) == 1
-    assert isinstance(agent.tools[0], DallETool)
+    assert isinstance(agent.tools[0], MistralImageTool)
     assert agent.allow_delegation is False
     assert agent.verbose is True
 
 
-@patch("app.agents.lex_pictor.OpenAI")
-def test_dalle_tool_run_api_error(mock_openai):
+@patch("app.agents.lex_pictor.Mistral")
+def test_mistral_image_tool_run_api_error(mock_mistral):
     mock_client = MagicMock()
-    mock_openai.return_value = mock_client
-    mock_client.images.generate.side_effect = Exception("API Error")
+    mock_mistral.return_value = mock_client
+    mock_client.beta.agents.create.side_effect = Exception("API Error")
 
-    tool = DallETool()
+    tool = MistralImageTool()
+    with patch("app.agents.lex_pictor.settings") as mock_settings:
+        mock_settings.mistral_api_key = "test-key"
+        with pytest.raises(Exception, match="API Error"):
+            tool._run(image_description="A legal scene")
 
-    with pytest.raises(Exception, match="API Error"):
-        tool._run(image_description="A landscape")
+
+def test_mistral_image_tool_run_no_file_id(mock_mistral_client):
+    # Mock agent creation
+    mock_agent = MagicMock()
+    mock_agent.id = "agent-123"
+    mock_mistral_client.beta.agents.create.return_value = mock_agent
+
+    # Mock response with no file_id
+    mock_output = MagicMock(spec=[])  # empty spec = no file_id attribute
+    mock_response = MagicMock()
+    mock_response.outputs = [mock_output]
+    mock_mistral_client.beta.conversations.start.return_value = mock_response
+
+    tool = MistralImageTool()
+    with patch("app.agents.lex_pictor.settings") as mock_settings:
+        mock_settings.mistral_api_key = "test-key"
+        result = tool._run(image_description="A legal scene")
+
+    assert result == "Image generation returned no file."

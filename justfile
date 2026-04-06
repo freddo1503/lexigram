@@ -62,6 +62,18 @@ docs-serve:
 docs-deploy:
     npx antora --fetch antora-playbook.yml
 
+# Start local Langfuse infrastructure
+langfuse-up:
+    docker compose up -d
+
+# Stop local Langfuse infrastructure
+langfuse-down:
+    docker compose down
+
+# Run evaluation pipeline (hits real APIs, no mocks)
+eval:
+    uv run --group eval pytest tests/eval/ -v --timeout=600 -s
+
 # Install git hooks via lefthook
 setup-hooks:
     lefthook install

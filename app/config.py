@@ -44,7 +44,6 @@ class LexigramSettings(BaseSettings):
     )
 
     # AI API keys
-    openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
     mistral_api_key: Optional[str] = Field(default=None, description="Mistral API key")
 
     # Application tokens
@@ -55,6 +54,11 @@ class LexigramSettings(BaseSettings):
     # DynamoDB configuration
     dynamo_table_name: Optional[str] = Field(
         default=None, description="DynamoDB table name"
+    )
+
+    # S3 configuration
+    s3_bucket_name: Optional[str] = Field(
+        default=None, description="S3 bucket name for generated images"
     )
 
     # Instagram configuration

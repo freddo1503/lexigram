@@ -4,7 +4,14 @@ from pathlib import Path
 
 import aws_cdk
 import boto3
-from aws_cdk import aws_events, aws_events_targets, aws_iam, aws_lambda, aws_logs
+from aws_cdk import (
+    aws_events,
+    aws_events_targets,
+    aws_iam,
+    aws_lambda,
+    aws_logs,
+    aws_s3,
+)
 from constructs import Construct
 from dotenv import dotenv_values
 from dynamo_db_table import LawPostsDynamoDBTable
@@ -17,6 +24,30 @@ class Lexigram(aws_cdk.Stack):
         law_posts_table = LawPostsDynamoDBTable(
             self,
             "LawPostsDynamoDBTable",
+        )
+
+        image_bucket = aws_s3.Bucket(
+            self,
+            "LexigramImageBucket",
+            bucket_name="lexigram-generated-images",
+            block_public_access=aws_s3.BlockPublicAccess(
+                block_public_acls=False,
+                block_public_policy=False,
+                ignore_public_acls=False,
+                restrict_public_buckets=False,
+            ),
+            removal_policy=aws_cdk.RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+            lifecycle_rules=[
+                aws_s3.LifecycleRule(expiration=aws_cdk.Duration.days(30)),
+            ],
+        )
+        image_bucket.add_to_resource_policy(
+            aws_iam.PolicyStatement(
+                actions=["s3:GetObject"],
+                resources=[image_bucket.arn_for_objects("*")],
+                principals=[aws_iam.AnyPrincipal()],  # ty: ignore[invalid-argument-type]
+            )
         )
 
         secret = SecretsManagerConstruct(
@@ -46,7 +77,10 @@ class Lexigram(aws_cdk.Stack):
             memory_size=512,
         )
 
+        lambda_function.add_environment("S3_BUCKET_NAME", image_bucket.bucket_name)
+
         law_posts_table.table.grant_read_write_data(lambda_function)
+        image_bucket.grant_put(lambda_function)
         lambda_function.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["secretsmanager:GetSecretValue"],

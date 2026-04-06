@@ -1,0 +1,27 @@
+services:
+  langfuse-db:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+    volumes:
+      - langfuse_pgdata:/var/lib/postgresql/data
+
+  langfuse-server:
+    image: langfuse/langfuse:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - langfuse-db
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_SECRET: lexigram-langfuse-dev-secret
+      NEXTAUTH_URL: http://localhost:3000
+      SALT: lexigram-langfuse-dev-salt
+      ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+
+volumes:
+  langfuse_pgdata:

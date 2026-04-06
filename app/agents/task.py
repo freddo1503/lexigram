@@ -52,7 +52,9 @@ text_summary = Task(
 )
 
 
-def validate_image_payload(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, TaskOutput | LiteAgentOutput | str]:
+def validate_image_payload(
+    output: TaskOutput | LiteAgentOutput,
+) -> Tuple[bool, TaskOutput | LiteAgentOutput | str]:
     if not output.pydantic:
         return False, "L'output n'est pas au format attendu (ImagePayload)"
     payload = cast(ImagePayload, output.pydantic)

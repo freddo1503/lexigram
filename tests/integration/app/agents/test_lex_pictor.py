@@ -1,9 +1,9 @@
-from app.agents.lex_pictor import DallETool
+from app.agents.lex_pictor import MistralImageTool
 from app.models.lex_pictor import ImagePayload
 
 
-def test_dalle_tool_success():
-    tool = DallETool()
+def test_mistral_image_tool_success():
+    tool = MistralImageTool()
 
     # Define a valid image description
     valid_input = {"image_description": "A futuristic cityscape at sunset"}
@@ -19,6 +19,7 @@ def test_dalle_tool_success():
 
     # Validate the ImagePayload properties
     assert result.image_url, "The result should contain a non-empty image_url."
+    assert result.image_url.startswith("https://"), "The image_url should be an S3 URL."
     assert result.image_description, (
         "The result should contain a non-empty image_description."
     )
