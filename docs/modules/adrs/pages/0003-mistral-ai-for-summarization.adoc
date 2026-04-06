@@ -1,0 +1,46 @@
+= ADR-0003: Mistral AI for Summarization
+:revdate: 2025-01-01
+:status: accepted
+
+== Context
+
+The AnalysteJuridique and LexMarker agents need an LLM for French legal text analysis and Instagram caption generation.
+The content is entirely in French — both the source legislation and the output summaries/captions.
+
+Requirements:
+
+* Strong French language comprehension and generation
+* Ability to handle long legal texts with complex vocabulary
+* Cost-effective for daily batch processing (one law per day)
+* Reliable structured output following detailed prompt instructions
+
+== Decision
+
+Use *Mistral Large* (`mistral/mistral-large-latest`) for the text-focused agents (AnalysteJuridique and LexMarker).
+
+GPT-4 is reserved for LexPictor where it orchestrates DALL-E image generation — a task that benefits from GPT-4's superior instruction-following for prompt engineering.
+
+== Consequences
+
+*Easier:*
+
+* Mistral AI is a French company with strong French language performance.
+* Lower cost per token compared to GPT-4 for text tasks.
+* Separating text (Mistral) from image (GPT-4) models optimizes cost without sacrificing quality.
+
+*Harder:*
+
+* Two LLM providers to manage (Mistral + OpenAI) — two API keys, two billing accounts.
+* Mistral model naming changes (e.g., `mistral-large-latest`) can introduce breaking changes.
+
+== Alternatives Considered
+
+*GPT-4 for all agents:*
+Higher cost per token for daily processing.
+No specific advantage for French text over Mistral Large.
+
+*Claude (Anthropic):*
+Strong multilingual capabilities, but at the time of evaluation Mistral offered better cost/performance for French-specific tasks.
+
+*Open-source models (Llama, etc.):*
+Would require self-hosting infrastructure, adding operational complexity for a small batch job.

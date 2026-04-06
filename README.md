@@ -25,7 +25,7 @@ Lexigram utilise l'intelligence artificielle pour générer et publier automatiq
 - **DALL·E APIs & Mistral AI**
 - **Instagram API**
 - **Légifrance API officielle**
-- **MkDocs & Material Theme** (pour la documentation)
+- **Antora & AsciiDoc** (pour la documentation)
 
 ---
 
@@ -39,7 +39,7 @@ Pour rester informé quotidiennement, retrouvez nos publications sur notre profi
 
 ## 🌐 Documentation Complète:
 
-Consultez notre documentation complète en ligne, entièrement générée avec MkDocs et le thème Material :
+Consultez notre documentation complète en ligne :
 
 🔗 [Lexigram Docs](https://freddo1503.github.io/lexigram/)
 

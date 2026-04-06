@@ -1,0 +1,86 @@
+= Error Handling
+:description: Exception hierarchy, classify_http_error, retry decorator, safe_request.
+
+Error handling is defined across two files:
+
+* `app/errors/exceptions.py` (156 lines) -- exception hierarchy
+* `app/errors/handlers.py` (265 lines) -- retry, classification, safe wrappers
+
+== Exception Hierarchy
+
+[source]
+----
+LexigramError (base)
++-- APIError
+|   +-- AuthenticationError (401/403)
+|   +-- RateLimitError (429, with retry_after)
+|   +-- NetworkError
+|   |   +-- TimeoutError
+|   +-- ServerError (5xx)
+|   +-- ClientError (4xx except 401/403/404/422/429)
+|   |   +-- ResourceNotFoundError (404)
+|   |   +-- ValidationError (422)
+|   +-- LegifranceError
+|   +-- InstagramError
+|   +-- DynamoDBError
++-- DataError
+|   +-- DataParsingError
+|   +-- DataIntegrityError
++-- CrewError
++-- ProcessingError
+    +-- PublishingError
+----
+
+All exceptions accept: `message`, `original_exception`, `details` (dict).
+`RateLimitError` adds `retry_after: Optional[int]`.
+
+== classify_http_error
+
+`classify_http_error(response, api_name="API")` maps HTTP status codes to exception types:
+
+[%header,cols="1,1"]
+|===
+|Status |Exception
+
+|401, 403 |`AuthenticationError`
+|404 |`ResourceNotFoundError`
+|422 |`ValidationError`
+|429 |`RateLimitError` (reads `Retry-After` header)
+|4xx |`ClientError`
+|5xx |`ServerError`
+|===
+
+== @retry Decorator
+
+[source,python]
+----
+@retry(
+    max_attempts=3,
+    retry_delay=1.0,
+    backoff_factor=2.0,
+    max_delay=60.0,
+    retryable_exceptions=[...],
+    retryable_status_codes=[...]
+)
+----
+
+*Default retryable exceptions:* `NetworkError`, `TimeoutError`, `ServerError`, `RateLimitError`, `requests.ConnectionError`, `requests.Timeout`, `requests.HTTPError`
+
+*Default retryable status codes:* 408, 429, 500, 502, 503, 504
+
+Exponential backoff: `delay = min(retry_delay * backoff_factor^attempt, max_delay)`
+
+== safe_request
+
+`safe_request(method, url, api_name="API", max_attempts=3, **kwargs)` -- wrapper around `requests.request()`.
+
+* Retries on transient failures
+* Converts HTTP errors to `APIError` subclasses via `classify_http_error()`
+* Maps `requests.ConnectionError` -> `NetworkError`, `requests.Timeout` -> `TimeoutError`
+
+== safe_parse_json
+
+`safe_parse_json(response, api_name="API")` -- safe JSON parsing.
+
+* Returns parsed dict on success
+* Raises `DataParsingError` on `JSONDecodeError` with response text in details

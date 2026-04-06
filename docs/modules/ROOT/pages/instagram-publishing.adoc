@@ -1,0 +1,52 @@
+= Instagram Publishing
+:description: Publisher class, 3-step publish flow (create media, wait, publish), Pydantic models.
+
+Publishing is handled by `app/services/publisher.py` (357 lines).
+
+== Publisher Class
+
+`Publisher(access_token, api_version="v23.0")`
+
+* Base URL: `pass:[https://graph.instagram.com/{api_version}]`
+* Integrates with `InstagramTokenManager` for automatic token refresh
+* Falls back to provided `access_token` if app credentials are unavailable
+
+== Publishing Flow
+
+Three-step process:
+
+. *Create media object:* `create_media_object(image_url, caption)` -> `creation_id`
+  ** POST to `pass:[/{user_id}/media]` with `image_url` and `caption`
+  ** Returns media container ID
+. *Wait for processing:* `wait_for_media_processing(creation_id)` -> `creation_id`
+  ** Polls `pass:[/{creation_id}?fields=status_code]` until `FINISHED`
+  ** Max 10 attempts, 5-second intervals
+  ** Raises `PublishingError` on `ERROR` status
+. *Publish post:* `publish_post(creation_id)` -> `media_id`
+  ** POST to `pass:[/{user_id}/media_publish]` with `creation_id`
+  ** Returns the published post ID
+
+Orchestrated by `publish(image_url, caption)` which calls all three in sequence.
+
+== Post-Publish
+
+`comment_on_post(media_id, message)` adds a comment to the published post.
+Used to add the Legifrance source URL.
+
+== Retry Strategy
+
+All API methods decorated with `@retry(max_attempts=3)`.
+
+== Pydantic Models
+
+Defined in `app/models/publisher.py`:
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`MediaPayload` |`image_url: HttpUrl` (validated extensions: .jpg, .jpeg, .png, .gif, .webp), `caption: str` (min_length=1)
+|`MediaCreationResponse` |`id: str` (media object ID)
+|`StatusResponse` |`status_code: str` (FINISHED, ERROR, etc.)
+|`PublishResponse` |`id: str` (published post ID)
+|===

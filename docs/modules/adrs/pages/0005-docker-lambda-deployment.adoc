@@ -1,0 +1,55 @@
+= ADR-0005: Docker Lambda Deployment
+:revdate: 2025-01-01
+:status: accepted
+
+== Context
+
+The Lambda function has heavy Python dependencies (CrewAI, boto3, OpenAI SDK, pylegifrance, beautifulsoup4).
+The total uncompressed dependency size exceeds the 250 MB Lambda zip deployment limit.
+
+Additionally, cold-start latency matters because the function runs a multi-step AI pipeline that already takes several minutes.
+
+== Decision
+
+Deploy Lambda as a *Docker container image* using the official AWS Lambda Python 3.12 base image.
+
+Build optimizations:
+
+* *uv* as package manager — fast, deterministic dependency resolution
+* `UV_COMPILE_BYTECODE=1` — pre-compile `.pyc` files to reduce cold-start import time
+* `UV_LINK_MODE=copy` — copy dependencies instead of symlinks for container compatibility
+* Multi-stage Dockerfile: dependency layer cached separately from application code
+
+Lambda configuration:
+
+* Memory: 512 MB
+* Timeout: 4 minutes
+* Architecture: auto-detected (ARM64 or X86_64) based on build machine
+
+== Consequences
+
+*Easier:*
+
+* No size limit on dependencies (container images up to 10 GB).
+* Reproducible builds — the container is the deployment artifact.
+* uv's bytecode compilation measurably reduces cold-start time.
+* Docker build caching speeds up CI deployments.
+
+*Harder:*
+
+* Larger deployment artifact compared to zip (longer upload times).
+* Requires Docker in the CI environment (privileged container with Docker socket).
+* ARM64/X86_64 detection adds build complexity.
+
+== Alternatives Considered
+
+*Zip deployment with Lambda layers:*
+Rejected because total dependency size exceeds the 250 MB limit even with layers.
+
+*AWS SAM:*
+Adds another abstraction layer on top of CDK.
+CDK is already used for all infrastructure.
+
+*ECS Fargate:*
+Overkill for a once-daily batch job.
+Lambda's pay-per-invocation model is more cost-effective.

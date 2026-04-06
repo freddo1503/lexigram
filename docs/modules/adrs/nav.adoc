@@ -1,0 +1,7 @@
+* Architecture Decision Records
+** xref:0001-multi-agent-architecture.adoc[ADR-0001: Multi-Agent Architecture]
+** xref:0002-crewai-framework.adoc[ADR-0002: CrewAI Framework]
+** xref:0003-mistral-ai-for-summarization.adoc[ADR-0003: Mistral AI for Summarization]
+** xref:0004-dynamodb-for-law-tracking.adoc[ADR-0004: DynamoDB for Law Tracking]
+** xref:0005-docker-lambda-deployment.adoc[ADR-0005: Docker Lambda Deployment]
+** xref:0006-antora-knowledge-base.adoc[ADR-0006: Antora Knowledge Base]

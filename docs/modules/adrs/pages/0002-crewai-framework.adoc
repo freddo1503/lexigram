@@ -1,0 +1,51 @@
+= ADR-0002: CrewAI Framework
+:revdate: 2025-01-01
+:status: accepted
+
+== Context
+
+The multi-agent architecture (xref:0001-multi-agent-architecture.adoc[ADR-0001]) requires a framework to define agents, assign tasks, manage context flow between agents, and orchestrate execution.
+
+Requirements:
+
+* Python-native (the entire codebase is Python 3.12)
+* Support for sequential task execution with context passing
+* Ability to assign different LLM models per agent
+* Custom tool integration (DALL-E image generation)
+* YAML-based agent/task configuration for non-code prompt editing
+
+== Decision
+
+Use *CrewAI* as the multi-agent orchestration framework.
+
+Agents and tasks are defined in `app/config/agents.yml` (French-language prompts) and loaded at runtime.
+CrewAI's `Crew` class wires agents to tasks and executes them sequentially.
+Custom tools (e.g., `DalleTool`) are integrated via CrewAI's `BaseTool` interface.
+
+== Consequences
+
+*Easier:*
+
+* Agent/task configuration in YAML allows prompt iteration without code changes.
+* Built-in context passing between sequential tasks.
+* `BaseTool` abstraction makes it simple to wrap external APIs (DALL-E).
+* Active open-source community and rapid development.
+
+*Harder:*
+
+* CrewAI is a fast-moving project — API surface changes between versions.
+* Verbose logging can be noisy in production.
+* Framework abstractions add overhead for a relatively simple 3-agent pipeline.
+
+== Alternatives Considered
+
+*LangGraph:*
+More flexible graph-based orchestration, but heavier and more complex for a simple sequential pipeline.
+
+*Custom orchestration:*
+Direct LLM API calls without a framework.
+Rejected because it would require reimplementing context passing, tool integration, and agent abstraction.
+
+*AutoGen:*
+Microsoft's multi-agent framework.
+Less mature Python ecosystem at the time of evaluation.

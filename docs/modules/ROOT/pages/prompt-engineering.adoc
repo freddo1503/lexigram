@@ -1,0 +1,84 @@
+= Prompt Engineering
+:description: Agent prompt design in French, caption rules, image style guidelines.
+
+Agent prompts are defined in `app/config/agents.yml` (99 lines), written entirely in French.
+Task guardrails are enforced in `app/agents/task.py`.
+
+== Design Principles
+
+* *Language:* All prompts in French -- matches the domain (French law) and output language
+* *Persona-driven:* Each agent has a detailed backstory that shapes its behavior
+* *Structured output:* Expected outputs are explicitly defined with required sections
+* *Guardrails:* Validation functions enforce output constraints programmatically
+
+== Agent Personas
+
+=== AnalysteJuridique
+
+* *Role:* "Analyste Juridique Expert"
+* *Backstory emphasis:* Experience in legal analysis, ability to extract key information, evaluate implications, produce structured analysis
+* *Behavioral directive:* Rigorous, synthetic, precise
+
+=== LexPictor
+
+* *Role:* "Artiste Visuel Innovant"
+* *Backstory emphasis:* Fuse artistic creativity with digital innovation
+* *Behavioral directive:* Create captivating visual artworks evoking emotions
+
+=== LexMarker
+
+* *Role:* "Specialiste en adaptation et diffusion de contenu juridique sur Instagram"
+* *Backstory emphasis:* Digital communication expert, transform complex texts into synthetic, attractive posts
+* *Behavioral directive:* Impactful, accessible publications
+
+== Output Constraints
+
+=== Text Summary
+
+Required sections (enforced by `validate_text_summary`):
+
+. "Titre officiel" -- official title of the legal text
+. "Date de publication" -- in "day month year" format
+. "Signataires officiels" -- official signatories
+. Per-article analysis with number/identifier + content summary + implications
+
+Minimum: 50 words.
+
+=== Image Generation
+
+Style rules (from agents.yml):
+
+* Minimalist, modern, soft colors
+* Legal/legislative/official context
+* *Exclude:* text, logos, national flags
+
+Validated by `validate_image_payload`: must produce `ImagePayload` with non-empty `image_url` and `image_description`.
+
+=== Instagram Caption
+
+Constraints (enforced by `validate_caption`):
+
+[%header,cols="1,2"]
+|===
+|Rule |Value
+
+|Max characters |2200 (Instagram limit)
+|Min words |20
+|Hashtags |5-10 required (max 30)
+|Emojis |At least 1 required
+|Formatting |No `*` or `_` (plain text only)
+|===
+
+Required structure (from agents.yml):
+
+. Captivating hook summarizing essential points
+. Key points in simple language
+. Practical implications for citizens
+. Publication date and signatories reference
+. 5-10 relevant hashtags
+
+== Guardrail Implementation
+
+Guardrails are Python functions passed to CrewAI's `Task(guardrail=...)` parameter.
+Each returns `Tuple[bool, str | TaskOutput]` -- `(valid, error_message_or_output)`.
+Tasks have `max_retries=2` -- if validation fails, CrewAI retries the task.

@@ -1,0 +1,55 @@
+= ADR-0006: Antora Knowledge Base
+:revdate: 2026-04-06
+:status: accepted
+
+== Context
+
+The existing documentation used MkDocs with Material theme, organized following the Diataxis framework (Tutorials / How-To / Reference / Explanation).
+Most planned pages were never written. The documentation was in French Markdown.
+
+Inspired by Andrej Karpathy's "LLM Knowledge Bases" approach, the goal shifted to a *living knowledge base maintained by the LLM* (Claude Code) rather than a traditional documentation site.
+
+Requirements:
+
+* Flat, topic-based structure optimized for LLM context window ingestion
+* Rich semantic structure (admonitions, tables, cross-references, includes)
+* Published as a static site for human browsing
+* English language with French legal terms defined inline
+* LLM-maintained — the AI writes and updates content, the human rarely edits directly
+
+== Decision
+
+Replace MkDocs/Markdown/Diataxis with *Antora/AsciiDoc* in a flat knowledge base structure.
+
+* *AsciiDoc* for richer semantic markup than Markdown (admonitions, typed cross-references, includes, callouts)
+* *Antora* for static site generation with component/module organization
+* *Flat structure* — no Diataxis quadrants, each page is a self-contained topic
+* *Root index* (`index.adoc`) with a table of all pages and 1-line summaries, serving as the LLM entry point
+* *Auto-enhance* — after researching codebase questions, findings are filed back into the wiki
+
+== Consequences
+
+*Easier:*
+
+* Dense, fact-first pages are efficient for LLM context windows.
+* AsciiDoc's semantic features (admonitions, xrefs) add structure without Markdown's limitations.
+* Root index enables quick LLM orientation in future sessions.
+* Wiki grows organically through usage — no need for dedicated documentation sprints.
+
+*Harder:*
+
+* Node.js dependency added to a Python project (Antora is Node-based).
+* AsciiDoc has a learning curve compared to Markdown.
+* No built-in live-reload dev server (requires full rebuild + HTTP server).
+* LLM-maintained content must be periodically validated for accuracy.
+
+== Alternatives Considered
+
+*Keep MkDocs with restructured content:*
+Markdown lacks the semantic richness needed (no admonitions, limited table support, no typed cross-references).
+
+*Plain Markdown without a site generator:*
+Closest to Karpathy's approach, but loses the published site for human browsing.
+
+*Sphinx with reStructuredText:*
+Powerful but heavier toolchain. RST syntax is less readable than AsciiDoc.

@@ -1,0 +1,89 @@
+= Agent Tasks
+:description: Three tasks: text summary, image generation, caption -- descriptions, outputs, guardrails.
+
+Three CrewAI tasks defined in `app/agents/task.py`, configured via `app/config/agents.yml`.
+Tasks execute sequentially. Each has a validation guardrail with `max_retries=2`.
+
+== Task Summary
+
+[%header,cols="1,1,1,1"]
+|===
+|Task |Agent |Context |Output
+
+|`text_summary` |AnalysteJuridique |None (first in chain) |Structured legal analysis text
+|`image_generation` |LexPictor |`[text_summary]` |`ImagePayload` (Pydantic)
+|`caption` |LexMarker |`[text_summary]` |Instagram caption text
+|===
+
+== text_summary
+
+Produces a structured French legal analysis.
+
+*Guardrail (`validate_text_summary`):*
+
+* Must contain required sections: "Titre officiel", "Date de publication", "Signataires officiels"
+* Minimum 50 words
+
+*Expected output sections:*
+
+. Official title of the legal text
+. Publication date (day month year format)
+. Official signatories
+. Detailed analysis of each article: number/identifier + content summary + implications
+
+== image_generation
+
+Generates an illustrative image via DALL-E 3.
+
+*Guardrail (`validate_image_payload`):*
+
+* Output must parse as `ImagePayload` Pydantic model
+* `image_url` must not be empty
+* `image_description` must not be empty
+
+*Output type:* `output_pydantic=ImagePayload`
+
+*Style constraints (from agents.yml):*
+
+* Minimalist, modern, soft colors
+* Legal/legislative/official context
+* No text, logos, or national flags
+
+== caption
+
+Creates an Instagram-ready caption from the legal summary.
+
+*Guardrail (`validate_caption`) -- comprehensive validation:*
+
+[%header,cols="1,2"]
+|===
+|Rule |Detail
+
+|Min words |20
+|Max characters |2200 (Instagram limit)
+|Hashtags |5-10 required, max 30
+|Emojis |At least 1 required
+|Formatting |No `*` or `_` characters (plain text only)
+|===
+
+*Expected caption structure (from agents.yml):*
+
+. Captivating hook summarizing essential points
+. Key points in simple language
+. Practical implications for citizens
+. Publication date and signatories reference
+. 5-10 relevant hashtags
+
+*Emoji detection:* Uses Unicode regex pattern covering emoticons, symbols, pictographs, transport, flags, dingbats, and supplemental symbols ranges.
+
+== Task Wiring
+
+Tasks are instantiated in `app/agents/task.py` with `agent=None`.
+The `app/agents/crew.py:create_crew()` function assigns agents to tasks at runtime:
+
+[source,python]
+----
+text_summary.agent = lex_analyst
+image_generation.agent = lex_pictor
+caption.agent = lex_marketer
+----

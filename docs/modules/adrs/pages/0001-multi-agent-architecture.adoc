@@ -1,0 +1,50 @@
+= ADR-0001: Multi-Agent Architecture
+:revdate: 2025-01-01
+:status: accepted
+
+== Context
+
+Lexigram must transform raw French legislative text into three distinct outputs: a structured legal summary, an illustrative image, and an Instagram caption.
+Each output requires a different skill set (legal analysis, visual design, social media marketing) and a different LLM (Mistral for text, GPT-4/DALL-E for images).
+
+A single monolithic prompt cannot effectively handle all three concerns.
+Separation allows each agent to have a specialized persona, backstory, and toolset.
+
+== Decision
+
+Use a *multi-agent architecture* with three specialized agents orchestrated in a *sequential pipeline*:
+
+. *AnalysteJuridique* -- analyzes legal text, produces a structured summary
+. *LexPictor* -- generates an illustrative image from the summary
+. *LexMarker* -- writes an Instagram caption from the summary
+
+Each agent's output feeds into the next as context.
+The pipeline is sequential because each step depends on the previous output.
+
+== Consequences
+
+*Easier:*
+
+* Each agent has a focused role, backstory, and prompt — easier to optimize independently.
+* Different LLM models can be assigned per agent (Mistral for text, GPT-4 for image orchestration).
+* Adding a new output type (e.g., Twitter thread) means adding a new agent without modifying existing ones.
+
+*Harder:*
+
+* Sequential execution increases total latency (no parallelism).
+* Debugging failures requires tracing through the agent chain.
+* Agent-to-agent context passing must be carefully managed.
+
+== Alternatives Considered
+
+*Monolithic single-prompt approach:*
+Rejected because a single prompt cannot effectively switch between legal analysis, image generation, and social media copywriting.
+Different LLM models are optimal for each task.
+
+*Parallel agent execution:*
+Not feasible because the image and caption depend on the legal summary output.
+The dependency chain is inherently sequential.
+
+*Microservices architecture:*
+Overkill for a batch job that runs once daily.
+A single Lambda with in-process agents is simpler and cheaper.

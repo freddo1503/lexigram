@@ -1,0 +1,69 @@
+= Daily Workflow
+:description: End-to-end daily pipeline: law sync, fetch details, crew processing, Instagram publish.
+
+The daily workflow runs in `app/main.py:main()`, triggered by EventBridge via `app/handler.py`.
+
+== Pipeline Steps
+
+=== Step 1: Sync Laws
+
+`LawSyncService.sync_laws_for_year()` fetches new laws from Legifrance for the current year.
+
+* Uses `pylegifrance.fonds.loda.Loda` to search for laws of nature `LOI`
+* Paginates through results (page_size=10)
+* Filters by publication date for the target year
+* Stores new entries in DynamoDB via `sync_new_entries_to_dynamodb()`
+* Skips laws that already exist (idempotent)
+
+=== Step 2: Get Next Unprocessed Law
+
+`LawProcessingService.get_next_unprocessed_law()` retrieves the oldest law where `isProcessed == false`.
+
+* Scans DynamoDB with filter expression `isProcessed = :val` where `:val = false`
+* Sorts results by date ascending
+* Returns `{textId, date}` dict or `None` if all laws are processed
+
+=== Step 3: Fetch Law Details
+
+`LawProcessingService.fetch_law_details(text_id)` retrieves the full law content from Legifrance.
+
+* Extracts the Legifrance text ID from the composite `textId` (format: `LEGITEXT000051827204_02-07-2025`)
+* Calls `Loda.fetch()` to get the full `TexteLoda` object
+* Returns articles, title, signatories, publication date
+
+=== Step 4: Process and Publish
+
+`LawProcessingService.process_and_publish_law()` runs the CrewAI pipeline and publishes to Instagram.
+
+. Format law content: extract and clean article text via `_format_law_content()`
+. Create crew: `create_crew()` wires agents to tasks
+. Kick off crew: `crew.kickoff(inputs={titre, date_publication, signataires, contenu})`
+. Extract outputs:
+  ** `tasks_output[1].pydantic` -> `ImagePayload` (image URL + revised prompt)
+  ** `tasks_output[2].raw` -> Instagram caption text
+. Publish to Instagram: create media -> wait for processing -> publish post
+. Comment with Legifrance URL: `pass:[https://www.legifrance.gouv.fr/jorf/id/{jorf_id}]`
+. Mark law as processed in DynamoDB: `update_item({isProcessed: true})`
+
+== Error Handling
+
+* `LexigramError` and `DynamoDBError` caught at the top level in `main()`
+* `process_and_publish_law()` is decorated with `@retry(max_attempts=2)`
+* Specific exceptions: `LegifranceError`, `CrewError`, `PublishingError`, `APIError`, `DataParsingError`
+
+== Data Flow
+
+[source]
+----
+Legifrance API
+  -> [TextLoda objects]
+    -> DynamoDB (sync)
+      -> [oldest unprocessed law]
+        -> Legifrance API (full details)
+          -> CrewAI Pipeline
+            -> text_summary (Mistral) -> structured analysis
+            -> image_generation (GPT-4 + DALL-E) -> ImagePayload(url, description)
+            -> caption (Mistral) -> Instagram caption text
+              -> Instagram Graph API (publish + comment)
+                -> DynamoDB (mark processed)
+----

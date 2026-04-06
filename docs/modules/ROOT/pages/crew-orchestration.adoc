@@ -1,0 +1,49 @@
+= Crew Orchestration
+:description: How create_crew() wires agents to tasks, kickoff input/output schema, result parsing.
+
+The crew is assembled in `app/agents/crew.py` and executed in `app/services/law_processing_service.py`.
+
+== Crew Assembly
+
+`create_crew()` in `app/agents/crew.py` (19 lines):
+
+. Instantiates three agents: `AnalysteJuridique()`, `LexPictor()`, `LexMarker()`
+. Assigns each agent to its task: `text_summary.agent = lex_analyst`, etc.
+. Returns a `Crew(agents=[...], tasks=[...])` instance
+
+The crew uses CrewAI's default *sequential* process -- tasks run in list order.
+
+== Kickoff Input
+
+`crew.kickoff()` is called in `LawProcessingService._process_with_crew()` with these inputs:
+
+[%header,cols="1,2"]
+|===
+|Input key |Source
+
+|`titre` |`law_details.title` (law title from Legifrance)
+|`date_publication` |`law_info["date"]` (from DynamoDB record)
+|`signataires` |`law_details.signers` (official signatories)
+|`contenu` |Cleaned article text from `_format_law_content()`
+|===
+
+== Output Parsing
+
+After `crew.kickoff()`, outputs are extracted from `result.tasks_output`:
+
+[%header,cols="1,1,2"]
+|===
+|Index |Task |How output is accessed
+
+|`[0]` |text_summary |Not directly used (consumed as context by downstream tasks)
+|`[1]` |image_generation |`tasks_output[1].pydantic` -> `ImagePayload(image_url, image_description)`
+|`[2]` |caption |`tasks_output[2].raw` -> plain text caption string
+|===
+
+== Post-Processing
+
+After crew execution, `LawProcessingService` continues:
+
+. Publishes to Instagram via `Publisher.publish(image_url, caption)`
+. Adds a comment with the Legifrance URL
+. Marks the law as processed in DynamoDB

@@ -1,0 +1,77 @@
+= Data Models
+:description: All Pydantic models: ImagePayload, MediaPayload, LawPostSchema, LexigramSettings.
+
+All data models use Pydantic `BaseModel` (or `BaseSettings` for configuration).
+
+== Models by File
+
+=== app/models/lex_pictor.py
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`ImagePayload`
+|`image_url: str`, `image_description: str`
+|===
+
+Used as the output type for the `image_generation` CrewAI task.
+`image_description` contains DALL-E's revised prompt.
+
+=== app/models/publisher.py
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`MediaPayload`
+|`image_url: HttpUrl` (validated extensions: .jpg, .jpeg, .png, .gif, .webp), `caption: str` (min_length=1)
+
+|`MediaCreationResponse`
+|`id: str`
+
+|`StatusResponse`
+|`status_code: str`
+
+|`PublishResponse`
+|`id: str`
+|===
+
+`MediaPayload` has a custom validator `validate_image_url()` that checks the URL path ends with a valid image extension.
+
+=== infra/dynamo_db_table.py
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`LawPostSchema`
+|`partition_key: dict` (default: `{"name": "textId", "type": STRING}`), `attributes: dict` (default: `{"date": STRING, "isProcessed": "BOOLEAN"}`)
+|===
+
+Has a `table_name` property that converts the class name to snake_case.
+Used by the CDK construct to define the DynamoDB table schema.
+
+=== app/config.py
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`LexigramSettings`
+|See xref:configuration.adoc[Configuration] for full field reference.
+|===
+
+Extends Pydantic `BaseSettings` -- reads from environment variables and `.env` files.
+
+=== app/agents/lex_pictor.py
+
+[%header,cols="1,2"]
+|===
+|Model |Fields
+
+|`ImagePromptSchema`
+|`image_description: str`
+|===
+
+Input schema for `DalleTool` (CrewAI `BaseTool.args_schema`).

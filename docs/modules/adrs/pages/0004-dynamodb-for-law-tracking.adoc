@@ -1,0 +1,52 @@
+= ADR-0004: DynamoDB for Law Tracking
+:revdate: 2025-01-01
+:status: accepted
+
+== Context
+
+Lexigram needs to track which laws have been synced from Legifrance and which have been processed (summarized + published).
+The access pattern is simple:
+
+* Write: sync new law records from Legifrance API
+* Read: find the oldest unprocessed law
+* Update: mark a law as processed after publishing
+
+The system processes at most one law per day (weekdays only).
+
+== Decision
+
+Use *Amazon DynamoDB* with on-demand (pay-per-request) billing.
+
+Table schema:
+
+* Partition key: `textId` (format: `LEGITEXT000051827204_02-07-2025`)
+* Attributes: `date` (extracted from textId), `isProcessed` (boolean)
+
+Data access uses `scan` with filter expressions to find unprocessed laws, sorted by date.
+
+== Consequences
+
+*Easier:*
+
+* Serverless — no database server to manage.
+* On-demand billing is cost-effective for very low throughput (~1 write/day, ~1 read/day).
+* Integrates natively with Lambda via IAM (no connection strings or credentials).
+* CDK construct makes provisioning trivial.
+
+*Harder:*
+
+* `scan` with filters is inefficient at scale, but acceptable for the current dataset size (tens to hundreds of records).
+* No relational queries — if future features need joins or complex queries, DynamoDB becomes limiting.
+* `DESTROY` removal policy means data is lost on stack teardown.
+
+== Alternatives Considered
+
+*PostgreSQL (RDS):*
+Overkill for a single-table, low-throughput workload.
+Adds operational cost (always-on instance) and connection management complexity.
+
+*S3 with JSON files:*
+Simpler storage but lacks atomic updates and query capabilities.
+
+*SQLite on Lambda EFS:*
+Adds EFS dependency and cold-start latency.

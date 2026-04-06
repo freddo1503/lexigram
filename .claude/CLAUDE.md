@@ -29,8 +29,9 @@ All commands go through `just`. Run `just --list` to see available recipes.
 | `just format-check` | Check formatting |
 | `just type-check` | Type check with ty |
 | `just deploy` | Deploy CDK stack |
-| `just docs-serve` | Serve docs locally |
-| `just docs-deploy` | Deploy docs to GitHub Pages |
+| `just docs-build` | Build Antora docs |
+| `just docs-serve` | Build and serve docs locally (port 8000) |
+| `just docs-deploy` | Build docs (CI handles GitHub Pages deployment) |
 | `just setup-hooks` | Install lefthook git hooks |
 
 ## Configuration

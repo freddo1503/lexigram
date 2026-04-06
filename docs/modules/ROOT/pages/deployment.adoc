@@ -1,0 +1,89 @@
+= CI/CD and Deployment
+:description: GitHub Actions pipeline, self-hosted runner, Docker build, Codecov integration.
+
+CI/CD is defined in `.github/workflows/ci-cd.yml`.
+
+== Pipeline Triggers
+
+* Push to `main` branch
+* Pull requests to `main`
+* Manual `workflow_dispatch`
+
+== Jobs
+
+=== test
+
+Runs on: `self-hosted` runner, `python:3.12` container.
+
+. Checkout code
+. Setup environment (composite action)
+. Run `just coverage` (pytest with coverage report)
+. Upload coverage HTML to GitHub artifacts
+. Upload to Codecov
+
+=== deploy
+
+Depends on: `test`. Runs only on push to main or workflow_dispatch.
+
+Runs on: `self-hosted` runner, `python:3.12` container with Docker socket.
+
+. Checkout code
+. Install Docker CLI
+. Setup environment
+. Install AWS CDK (`npm install -g aws-cdk`)
+. Run `just deploy` (CDK deploy)
+. Environment variables: `CDK_DEFAULT_ACCOUNT`, `CDK_DEFAULT_REGION=eu-west-3`
+
+=== deploy-docs
+
+Depends on: `deploy`. Runs only on push to main or workflow_dispatch.
+
+Runs on: `ubuntu-latest`.
+
+. Checkout code (full history)
+. Setup Node.js
+. Install just
+. Run `npm install` and `just docs-build`
+. Upload `build/site` as Pages artifact
+. Deploy to GitHub Pages
+
+NOTE: Requires GitHub Pages source set to "GitHub Actions" (not branch-based).
+
+== Composite Setup Action
+
+`.github/actions/setup/action.yml` (56 lines):
+
+. Creates `.env` file (mode 600) from secrets
+. Configures AWS credentials
+. Sets up Node.js
+. Installs uv package manager
+. Installs just command runner
+. Conditional dependency installation (`just install` or `just install-all`)
+
+== Dockerfile
+
+Multi-stage Docker build (28 lines):
+
+. *Stage 1:* Copy `uv` binary from `ghcr.io/astral-sh/uv`
+. *Stage 2:* Install dependencies with `uv export --frozen | uv pip install`
+  ** `UV_COMPILE_BYTECODE=1` -- pre-compile for faster cold starts
+  ** `UV_NO_INSTALLER_METADATA=1` -- skip metadata to reduce size
+  ** `UV_LINK_MODE=copy` -- copy mode for container compatibility
+. *Stage 3:* Copy dependencies + app code, set handler
+
+Base image: `public.ecr.aws/lambda/python:3.12`
+
+== Secrets
+
+All CI secrets stored in GitHub repository secrets:
+
+[%header,cols="1,2"]
+|===
+|Secret |Purpose
+
+|`AWS_ACCESS_KEY_ID` |AWS IAM access key
+|`AWS_SECRET_ACCESS_KEY` |AWS IAM secret key
+|`AWS_ACCOUNT_ID` |AWS account number for CDK
+|`ENV` |Full `.env` file content
+|`CODECOV_TOKEN` |Codecov upload token
+|===

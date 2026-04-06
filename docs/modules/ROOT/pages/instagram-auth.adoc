@@ -1,0 +1,52 @@
+= Instagram Authentication
+:description: Token management, long-lived token refresh, AWS Secrets Manager storage.
+
+Token lifecycle management is in `app/services/instagram_auth.py` (611 lines).
+
+== InstagramTokenManager
+
+`InstagramTokenManager(app_id, app_secret, current_token, secret_name="my-env-secrets", token_key="ACCESS_TOKEN")`
+
+=== Token Refresh Strategy
+
+Multi-tier approach, executed by `ensure_valid_token()`:
+
+. *Validate:* `is_token_valid()` -- test API call to `pass:[/{user_id}?fields=id]`
+. *Check expiry:* `get_token_info()` -- calls `/debug_token` to get expiration timestamp
+. *Refresh if expiring within 7 days:*
+  ** Primary: `refresh_long_lived_token()` -- Instagram-specific endpoint `/access_token?grant_type=ig_refresh_token`
+  ** Fallback: `_fallback_facebook_refresh()` -- Facebook Graph API `/oauth/access_token`
+. *Create new if no valid token:* Delegates to `SystemUserTokenGenerator`
+. *Persist:* `update_token_in_secrets(new_token)` -- stores in AWS Secrets Manager
+
+=== Factory Method
+
+`InstagramTokenManager.from_config(app_id, app_secret, current_token)` -- creates an instance with standard configuration.
+
+== SystemUserTokenGenerator
+
+`SystemUserTokenGenerator(app_id, app_secret)` -- creates permanent tokens via Facebook Business Manager.
+
+Flow:
+
+. `get_app_access_token()` -- client credentials grant
+. `list_business_managers(app_token)` -- find associated business
+. `create_system_user(business_id, app_token)` -- create system user
+. `generate_system_user_token(business_id, system_user_id, app_token)` -- generate permanent token with `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `pages_read_engagement` scopes
+. `get_instagram_business_account(token)` -- verify Instagram access
+
+Orchestrated by `create_permanent_instagram_token(business_id)`.
+
+== Module-Level Functions
+
+[%header,cols="1,2"]
+|===
+|Function |Purpose
+
+|`create_instagram_token(app_id, app_secret)` |Create a new permanent token from scratch
+|`get_refreshed_instagram_token(app_id, app_secret, current_token)` |Refresh an existing token or create new
+|===
+
+== Storage
+
+Tokens are stored in AWS Secrets Manager under secret name `my-env-secrets`, key `ACCESS_TOKEN`.

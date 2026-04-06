@@ -9,6 +9,7 @@ install:
 # Install all dependencies (dev + docs)
 install-all:
     uv sync --all-extras
+    npm install
 
 # Run all tests
 test: test-unit test-integration
@@ -49,13 +50,17 @@ type-check:
 deploy:
     uv run cdk deploy --all --require-approval=never
 
+# Build docs
+docs-build:
+    npx antora --fetch antora-playbook.yml
+
 # Serve docs locally
 docs-serve:
-    uv run mkdocs serve
+    npx antora --fetch antora-playbook.yml && python3 -m http.server -d build/site 8000
 
-# Deploy docs to GitHub Pages
+# Deploy docs (CI handles GitHub Pages deployment)
 docs-deploy:
-    uv run mkdocs gh-deploy --force
+    npx antora --fetch antora-playbook.yml
 
 # Install git hooks via lefthook
 setup-hooks:

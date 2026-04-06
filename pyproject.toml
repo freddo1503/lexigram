@@ -33,10 +33,6 @@ dev = [
     "ruff>=0.9.6",
     "ty",
 ]
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.9",
-]
 
 [tool.ty.environment]
 python-version = "3.12"

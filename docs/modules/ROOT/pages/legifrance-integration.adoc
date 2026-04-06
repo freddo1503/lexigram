@@ -1,0 +1,68 @@
+= Legifrance Integration
+:description: pylegifrance library, LawSyncService, Loda search/fetch, French legal terms glossary.
+
+Lexigram consumes French legislation from the official Legifrance API via the `pylegifrance` library.
+
+== pylegifrance Library
+
+Third-party Python wrapper for the Legifrance API (`pylegifrance>=1.2.1b1`).
+
+Key classes used:
+
+[%header,cols="1,2"]
+|===
+|Class |Purpose
+
+|`ApiConfig` |API configuration (client ID, client secret)
+|`LegifranceClient` |Authenticated HTTP client
+|`Loda` |Access to the LODA fund (laws and decrees)
+|`Loda.search()` |Search for laws by criteria (nature, date period)
+|`Loda.fetch()` |Fetch full law content by text ID
+|`TexteLoda` |Full law document (title, articles, signers)
+|===
+
+== API Client Initialization
+
+Configured in `app/config.py:SettingsManager`:
+
+. `_load_secrets()` fetches credentials from AWS Secrets Manager
+. Sets `LEGIFRANCE_CLIENT_ID` and `LEGIFRANCE_CLIENT_SECRET` as environment variables
+. `api_config` property creates `ApiConfig()` (reads from env vars)
+. `api_client` property creates `LegifranceClient(api_config)`
+
+== LawSyncService
+
+Defined in `app/services/law_sync_service.py` (67 lines).
+
+`sync_laws_for_year(year)`:
+
+. Defaults to current year if no year provided
+. Creates a `DatePeriod` filter for the target year (Jan 1 to Dec 31)
+. Calls `Loda.search()` with `natures=["LOI"]` and the date period
+. Paginates through results (page_size=10)
+. Stores each law in DynamoDB via `sync_new_entries_to_dynamodb()`
+. Returns count of synced laws
+
+== Law Detail Fetching
+
+In `app/services/law_processing_service.py:fetch_law_details()`:
+
+. Extracts the Legifrance text ID from composite `textId` (e.g., `LEGITEXT000051827204` from `LEGITEXT000051827204_02-07-2025`)
+. Calls `Loda.fetch(text_id)` to get `TexteLoda`
+. Returns full document with articles, title, signers, publication date
+
+== French Legal Terms Glossary
+
+[%header,cols="1,1,2"]
+|===
+|Term |Translation |Description
+
+|LOI |Law |A law passed by Parliament (Assemblee nationale + Senat)
+|JORF |Journal Officiel |Official Journal of the French Republic -- where laws are published
+|LEGITEXT |Legal Text ID |Unique identifier for a law in the Legifrance database (e.g., `LEGITEXT000051827204`)
+|Signataires |Signatories |Officials who signed the law (typically President, Prime Minister, relevant ministers)
+|Article |Article |Individual section/clause within a law
+|Decret |Decree |Executive order issued by the government (not currently processed by Lexigram)
+|Ordonnance |Ordinance |Government measure with force of law
+|Legifrance |Legifrance |Official French government website for legal information
+|===

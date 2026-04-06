@@ -1,0 +1,64 @@
+= Configuration
+:description: LexigramSettings (Pydantic), SettingsManager, env vars, agents.yml loading.
+
+Configuration is centralized in `app/config.py` (192 lines).
+
+== LexigramSettings
+
+Pydantic `BaseSettings` with field validation.
+
+[%header,cols="1,1,1,2"]
+|===
+|Field |Type |Default |Description
+
+|`log_level` |str |`"INFO"` |Validated: DEBUG, INFO, WARNING, ERROR, CRITICAL
+|`aws_secret_name` |str |`"my-env-secrets"` |AWS Secrets Manager secret name
+|`legifrance_client_id` |Optional[str] |None |Legifrance API client ID
+|`legifrance_client_secret` |Optional[str] |None |Legifrance API client secret
+|`openai_api_key` |Optional[str] |None |OpenAI API key (GPT-4 + DALL-E)
+|`mistral_api_key` |Optional[str] |None |Mistral AI API key
+|`access_token` |Optional[str] |None |Instagram Graph API access token
+|`dynamo_table_name` |Optional[str] |None |DynamoDB table name
+|`instagram_app_id` |str |`"1290296265534782"` |Instagram/Facebook app ID
+|`instagram_app_secret` |Optional[str] |None |Instagram/Facebook app secret
+|===
+
+== SettingsManager
+
+Singleton pattern managing settings + API clients.
+
+* `settings` property: returns `LexigramSettings` instance
+* `api_config` property: creates `pylegifrance.ApiConfig()`
+* `api_client` property: creates `pylegifrance.LegifranceClient(api_config)`
+
+=== Secret Loading
+
+`_load_secrets()` flow:
+
+. Calls `get_all_secrets()` which fetches from AWS Secrets Manager
+. Updates `LexigramSettings` fields with secret values
+. Sets `LEGIFRANCE_CLIENT_ID` and `LEGIFRANCE_CLIENT_SECRET` as environment variables (required by pylegifrance)
+
+== agents.yml Loading
+
+`load_agents_config()` reads `app/config/agents.yml` and returns a `dict[str, dict]`.
+
+The config file path: `Path(__file__).parent / "config" / "agents.yml"`.
+
+== Global Instances
+
+Module-level singletons created at import time:
+
+[source,python]
+----
+settings_manager = SettingsManager()
+settings = settings_manager.settings
+agents_config = load_agents_config()
+----
+
+These are imported throughout the codebase via `from app.config import settings, agents_config`.
+
+== Local Development
+
+Use a `.env` file at project root. `LexigramSettings` inherits from Pydantic `BaseSettings` which automatically reads `.env` files.
+In production (Lambda), secrets come from AWS Secrets Manager.

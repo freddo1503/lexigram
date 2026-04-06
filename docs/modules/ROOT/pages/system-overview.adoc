@@ -1,0 +1,67 @@
+= System Overview
+:description: What Lexigram is, high-level architecture, and tech stack.
+
+Lexigram is an AI-powered multi-agent system that summarizes French legislation and publishes daily Instagram posts.
+It runs as an AWS Lambda function triggered by EventBridge on weekdays at 11:30 UTC.
+
+== What It Does
+
+. Syncs new laws from the Legifrance API (official French law database)
+. Picks the oldest unprocessed law
+. Runs a 3-agent CrewAI pipeline: legal analysis -> image generation -> Instagram caption
+. Publishes the result to Instagram with a comment linking back to the Legifrance source
+
+== Architecture
+
+[source]
+----
+EventBridge (cron: weekdays 11:30)
+  -> Lambda (Docker, Python 3.12, 512MB, 4min timeout)
+       -> Legifrance API (pylegifrance)          [law sync + fetch]
+       -> DynamoDB                                [track processed laws]
+       -> CrewAI Pipeline
+            -> Mistral Large (text analysis)      [AnalysteJuridique]
+            -> GPT-4 + DALL-E 3 (image)           [LexPictor]
+            -> Mistral Large (caption)             [LexMarker]
+       -> Instagram Graph API                     [publish post + comment]
+       -> AWS Secrets Manager                     [API keys, tokens]
+----
+
+== Tech Stack
+
+[%header,cols="1,2"]
+|===
+|Component |Technology
+
+|Language |Python 3.12
+|Package manager |uv
+|Agent framework |CrewAI (sequential pipeline)
+|Text LLM |Mistral Large (`mistral/mistral-large-latest`)
+|Image LLM |GPT-4 + DALL-E 3 (1024x1024)
+|Law data source |Legifrance API via `pylegifrance`
+|Publishing |Instagram Graph API v23.0
+|Compute |AWS Lambda (Docker container image)
+|Data store |Amazon DynamoDB (on-demand billing)
+|Scheduling |Amazon EventBridge (`cron(30 11 ? * MON-FRI)`)
+|Secrets |AWS Secrets Manager
+|Infrastructure |AWS CDK (Python)
+|CI/CD |GitHub Actions (self-hosted runner)
+|Linting |Ruff
+|Type checking |ty
+|Testing |pytest + pytest-cov
+|Git hooks |Lefthook
+|Docs |Antora + AsciiDoc
+|===
+
+== Key Entry Points
+
+[%header,cols="1,2"]
+|===
+|File |Purpose
+
+|`app/handler.py` |AWS Lambda handler (EventBridge -> `main()`)
+|`app/main.py` |Main orchestration: sync, fetch, process, publish
+|`app/agents/crew.py` |CrewAI crew assembly
+|`app/config.py` |Settings, secrets, API client initialization
+|`infra/lexigram_stack.py` |CDK stack definition
+|===

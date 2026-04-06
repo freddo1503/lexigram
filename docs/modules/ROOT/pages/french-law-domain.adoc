@@ -1,0 +1,64 @@
+= French Law Domain
+:description: French legislative process, JORF, LOI, LEGITEXT identifiers, legal terms glossary.
+
+Domain knowledge for understanding how French legislation works and how Lexigram interacts with it.
+
+== How French Laws Are Published
+
+. *Parliament votes* a law (Assemblee nationale + Senat)
+. The *President signs* the law (promulgation)
+. The law is *published in the JORF* (Journal Officiel de la Republique Francaise)
+. *Legifrance* indexes the law and makes it searchable via API
+
+Lexigram processes laws at step 4 -- after they appear in the Legifrance database.
+
+== Legifrance Identifiers
+
+[%header,cols="1,2,2"]
+|===
+|ID Type |Format |Example
+
+|LEGITEXT |Unique text identifier |`LEGITEXT000051827204`
+|JORF |Journal Officiel reference |Used in source URLs
+|Lexigram textId |Composite key |`LEGITEXT000051827204_02-07-2025` (ID + publication date)
+|===
+
+The composite `textId` format enables date-based sorting of laws in DynamoDB.
+The LEGITEXT portion is extracted for Legifrance API calls.
+
+== Law Structure
+
+A French law (`LOI`) typically contains:
+
+* *Title:* Official name (e.g., "Loi n 2025-XXX du ...")
+* *Signatories:* President, Prime Minister, relevant ministers
+* *Articles:* Individual provisions, numbered sequentially
+* *Publication date:* Date of publication in the JORF
+
+== Types of Legal Texts
+
+[%header,cols="1,1,2"]
+|===
+|French |English |Description
+
+|LOI |Law |Voted by Parliament. *This is what Lexigram processes* (`natures=["LOI"]`).
+|Decret |Decree |Executive order by the government. Not processed.
+|Ordonnance |Ordinance |Government measure with force of law. Not processed.
+|Arrete |Ministerial order |Decision by a minister. Not processed.
+|===
+
+== Glossary
+
+[%header,cols="1,1,2"]
+|===
+|Term |Translation |Context in Lexigram
+
+|Assemblee nationale |National Assembly |Lower house of French Parliament
+|Senat |Senate |Upper house of French Parliament
+|Promulgation |Promulgation |Presidential act of signing a law into effect
+|JORF |Official Journal |Where laws are officially published
+|Legifrance |Legifrance |Government website and API for legal information
+|Signataires |Signatories |Officials who signed the law
+|Article |Article |Individual clause/section within a law
+|LODA |Laws, Ordinances, Decrees, Orders |The fund (collection) in Legifrance that Lexigram queries
+|===

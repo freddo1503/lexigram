@@ -1,0 +1,79 @@
+= Development Setup
+:description: Prerequisites, uv, justfile recipes, lefthook hooks, ruff, ty.
+
+== Prerequisites
+
+* Python 3.12
+* https://docs.astral.sh/uv/[uv] package manager
+* Node.js (for Antora docs)
+* Docker (for Lambda container builds)
+* AWS CLI configured with appropriate credentials
+
+== Getting Started
+
+[source,bash]
+----
+git clone <repo-url>
+cd lexigram
+just install-all    # installs Python deps (uv sync) + Node deps (npm install)
+just setup-hooks    # installs lefthook git hooks
+----
+
+Create a `.env` file at project root with required secrets (see xref:configuration.adoc[Configuration]).
+
+== Justfile Recipes
+
+[%header,cols="1,2"]
+|===
+|Recipe |Purpose
+
+|`just install` |Install Python dependencies (`uv sync`)
+|`just install-all` |Install all dependencies (Python + Node)
+|`just test` |Run all tests (unit + integration)
+|`just test-unit` |Run unit tests only
+|`just test-integration` |Run integration tests only
+|`just coverage` |Run tests with coverage report
+|`just lint` |Lint with ruff
+|`just lint-fix` |Lint and auto-fix
+|`just format` |Format with ruff
+|`just format-check` |Check formatting
+|`just type-check` |Type check with ty
+|`just deploy` |Deploy CDK stack
+|`just docs-build` |Build Antora docs
+|`just docs-serve` |Build and serve docs locally (port 8000)
+|`just docs-deploy` |Build docs (CI handles deployment)
+|`just setup-hooks` |Install lefthook git hooks
+|===
+
+== Code Quality
+
+=== Ruff
+
+Linting and formatting. Config in `pyproject.toml`:
+
+* Line length: 88
+* Quote style: double
+* Indent style: space
+* Extended rules: `I` (isort), `W292` (trailing newlines)
+
+=== ty
+
+Type checking targeting Python 3.12. Config in `pyproject.toml`:
+
+* Extra paths: `["infra"]` (for CDK imports)
+
+== Git Hooks
+
+Lefthook manages pre-commit hooks (config in `lefthook.yml`).
+Hooks run `just lint-fix` and `just format` on staged `.py` files.
+
+Install with `just setup-hooks`.
+
+== Testing
+
+* Framework: pytest with pytest-cov, pytest-mock
+* Timeout: 300 seconds per test
+* Unit tests: `tests/unit/`
+* Integration tests: `tests/integration/` (may require AWS credentials and `.env`)
+* Coverage config: `.coveragerc`
+* Coverage output: `htmlcov/`

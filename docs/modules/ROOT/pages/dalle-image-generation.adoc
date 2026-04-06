@@ -1,0 +1,49 @@
+= DALL-E Image Generation
+:description: DalleTool as CrewAI BaseTool, ImagePromptSchema, DALL-E 3 API parameters.
+
+Image generation is handled by `DalleTool` in `app/agents/lex_pictor.py`.
+
+== DalleTool
+
+A CrewAI `BaseTool` subclass that wraps the OpenAI DALL-E 3 API.
+
+[%header,cols="1,2"]
+|===
+|Property |Value
+
+|Name |`"Dall-E Tool"`
+|Description |`"Generates images using OpenAI's Dall-E model."`
+|Input schema |`ImagePromptSchema` (single field: `image_description: str`)
+|Model |`dall-e-3`
+|Size |`1024x1024`
+|Count |`n=1`
+|===
+
+== Execution Flow
+
+. LexPictor agent (GPT-4) crafts a prompt describing the desired image
+. Agent invokes `DalleTool._run(image_description=...)`
+. Tool calls `openai.images.generate(model="dall-e-3", prompt=..., size="1024x1024", n=1)`
+. Returns `ImagePayload(image_url=response.url, image_description=response.revised_prompt)`
+. On error, returns the error message as a string
+
+== ImagePayload Model
+
+Defined in `app/models/lex_pictor.py`:
+
+[source,python]
+----
+class ImagePayload(BaseModel):
+    image_url: str
+    image_description: str
+----
+
+NOTE: `image_description` contains DALL-E's *revised prompt* (the model may modify the input prompt for safety/quality).
+
+== Style Guidelines
+
+From `app/config/agents.yml` (image_generation task):
+
+* *Style:* Minimalist, modern, soft colors
+* *Context:* Legal, legislative, official
+* *Exclude:* Text, logos, national flags

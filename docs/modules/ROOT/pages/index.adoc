@@ -1,0 +1,77 @@
+= Lexigram Knowledge Base
+:description: LLM-maintained knowledge base for the Lexigram project. This is the entry point — read this first.
+
+This knowledge base is maintained by Claude Code following Karpathy's LLM Knowledge Base approach.
+It grows incrementally through usage: after researching codebase questions, findings are filed back into the wiki.
+
+== Knowledge Pages
+
+[%header,cols="2,4"]
+|===
+|Page |Summary
+
+|xref:system-overview.adoc[System Overview]
+|What Lexigram is, high-level architecture, and tech stack.
+
+|xref:workflow.adoc[Daily Workflow]
+|End-to-end daily pipeline: law sync, fetch details, crew processing, Instagram publish.
+
+|xref:agents.adoc[AI Agents]
+|Three CrewAI agents: AnalysteJuridique, LexPictor, LexMarker — roles, goals, models, tools.
+
+|xref:tasks.adoc[Agent Tasks]
+|Three tasks: text summary, image generation, caption — descriptions, outputs, guardrails.
+
+|xref:crew-orchestration.adoc[Crew Orchestration]
+|How `create_crew()` wires agents to tasks, kickoff input/output schema, result parsing.
+
+|xref:legifrance-integration.adoc[Legifrance Integration]
+|pylegifrance library, LawSyncService, Loda search/fetch, French legal terms glossary.
+
+|xref:instagram-publishing.adoc[Instagram Publishing]
+|Publisher class, 3-step publish flow (create media, wait, publish), Pydantic models.
+
+|xref:instagram-auth.adoc[Instagram Authentication]
+|Token management, long-lived token refresh, AWS Secrets Manager storage.
+
+|xref:dalle-image-generation.adoc[DALL-E Image Generation]
+|DalleTool as CrewAI BaseTool, ImagePromptSchema, DALL-E 3 API parameters.
+
+|xref:dynamodb.adoc[DynamoDB Data Layer]
+|DynamoDBClient CRUD, textId format, isProcessed flag, scan for unprocessed laws.
+
+|xref:configuration.adoc[Configuration]
+|LexigramSettings (Pydantic), SettingsManager, env vars, agents.yml loading.
+
+|xref:error-handling.adoc[Error Handling]
+|Exception hierarchy, classify_http_error, retry decorator, safe_request.
+
+|xref:data-models.adoc[Data Models]
+|All Pydantic models: ImagePayload, MediaPayload, LawPostSchema, LexigramSettings.
+
+|xref:infrastructure.adoc[AWS Infrastructure]
+|CDK stack: Docker Lambda, DynamoDB table, EventBridge cron, IAM, Secrets Manager.
+
+|xref:deployment.adoc[CI/CD and Deployment]
+|GitHub Actions pipeline, self-hosted runner, Docker build, Codecov integration.
+
+|xref:development-setup.adoc[Development Setup]
+|Prerequisites, uv, justfile recipes, lefthook hooks, ruff, ty.
+
+|xref:french-law-domain.adoc[French Law Domain]
+|French legislative process, JORF, LOI, LEGITEXT identifiers, legal terms glossary.
+
+|xref:prompt-engineering.adoc[Prompt Engineering]
+|Agent prompt design in French, caption rules, image style guidelines.
+|===
+
+== Architecture Decision Records
+
+See xref:adrs:0001-multi-agent-architecture.adoc[ADR module] for all architecture decisions.
+
+== Maintenance
+
+This wiki is the domain of the LLM.
+The human rarely edits it directly.
+After researching codebase questions, findings are proactively filed back into relevant pages.
+This index is updated whenever pages are added or modified.

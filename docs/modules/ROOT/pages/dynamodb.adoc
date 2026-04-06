@@ -1,0 +1,53 @@
+= DynamoDB Data Layer
+:description: DynamoDBClient CRUD, textId format, isProcessed flag, scan for unprocessed laws.
+
+DynamoDB is used to track which laws have been synced and processed.
+Client wrapper in `app/services/dynamo_utils.py` (155 lines).
+Table construct in `infra/dynamo_db_table.py`.
+
+== Table Schema
+
+[%header,cols="1,1,2"]
+|===
+|Attribute |Type |Description
+
+|`textId` |STRING (partition key) |Composite ID: `pass:[{LEGITEXT_ID}_{DD-MM-YYYY}]` (e.g., `LEGITEXT000051827204_02-07-2025`)
+|`date` |STRING |Publication date extracted from textId
+|`isProcessed` |BOOLEAN |`false` = pending, `true` = published to Instagram
+|===
+
+* *Billing:* Pay-per-request (on-demand)
+* *Removal policy:* DESTROY (stack teardown deletes table)
+* *Table name:* Derived from `LawPostSchema` class name (snake_case)
+
+== DynamoDBClient
+
+`DynamoDBClient(table_name)` -- wrapper around `boto3.resource("dynamodb")`.
+
+=== CRUD Methods
+
+[%header,cols="1,2"]
+|===
+|Method |Description
+
+|`get_item(key)` |Fetch single item by key
+|`put_item(item)` |Insert item, returns bool
+|`update_item(key, updates)` |SET expression update, returns bool
+|`delete_item(key)` |Delete by key, returns bool
+|`scan(filter_expression, expression_values)` |Full table scan with filter
+|===
+
+=== Domain Methods
+
+[%header,cols="1,2"]
+|===
+|Method |Description
+
+|`sync_new_law_to_dynamodb(text_loda)` |Add new law if not already exists (idempotent)
+|`sync_new_entries_to_dynamodb(text_lodas)` |Batch sync with summary string return
+|`get_last_unprocessed_law()` |Scan for `isProcessed=false`, sort by date, return oldest
+|===
+
+== Error Handling
+
+All methods catch `botocore.exceptions.ClientError`, log the error, and return `None` or `False`.

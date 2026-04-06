@@ -1,0 +1,6 @@
+name: lexigram
+version: ~
+title: Lexigram
+nav:
+  - modules/ROOT/nav.adoc
+  - modules/adrs/nav.adoc

@@ -1,0 +1,62 @@
+= AWS Infrastructure
+:description: CDK stack: Docker Lambda, DynamoDB table, EventBridge cron, IAM, Secrets Manager.
+
+Infrastructure is defined in `infra/` using AWS CDK (Python).
+
+== Stack: Lexigram
+
+`infra/lexigram_stack.py` (102 lines) -- single CDK stack.
+
+=== Components
+
+[%header,cols="1,2"]
+|===
+|Resource |Configuration
+
+|*DynamoDB Table*
+|`LawPostsDynamoDBTable` -- partition key `textId` (STRING), on-demand billing, DESTROY removal policy
+
+|*Secrets Manager*
+|`SecretsManagerConstruct` -- loads `.env` file, stores as JSON under secret name `my-env-secrets`
+
+|*Lambda Function*
+|`DockerImageFunction` -- Python 3.12 base image, 512 MB memory, 4-minute timeout, 1-month log retention
+
+|*EventBridge Rule*
+|`cron(30 11 ? * MON-FRI)` -- weekdays at 11:30 UTC
+
+|*IAM*
+|Lambda -> DynamoDB (read/write), Lambda -> Secrets Manager (GetSecretValue)
+|===
+
+=== Lambda Configuration
+
+* *Architecture:* Auto-detected (ARM64 or X86_64 based on build machine via `infra/helpers.py`)
+* *Handler:* `app.handler.handler`
+* *Docker:* Built from project root `Dockerfile`
+* *Environment variable:* `DYNAMO_TABLE_NAME` set to the created table name
+
+=== Secrets Manager Construct
+
+`SecretsManagerConstruct(scope, id, env_file_path, secret_name)`:
+
+* Reads `.env` file and converts to JSON string
+* Creates or updates the secret in AWS Secrets Manager
+* Used at deploy time to sync local secrets to cloud
+
+== CDK App Entry
+
+`infra/app.py` (17 lines):
+
+* Calls `get_account_and_region()` from `infra/helpers.py`
+* Creates the `Lexigram` stack with the resolved AWS account and region
+* Region: `eu-west-3` (Paris)
+
+== Infrastructure Helpers
+
+`infra/helpers.py` (53 lines):
+
+`get_account_and_region(profile=None)` supports two modes:
+
+. *AWS Profile:* reads `AWS_PROFILE` env var, uses boto3 Session
+. *Direct credentials:* reads `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CDK_DEFAULT_REGION`
