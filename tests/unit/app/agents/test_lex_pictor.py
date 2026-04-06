@@ -61,7 +61,9 @@ def test_dalle_tool_run_success(mock_openai_client):
     )
 
 
-def test_dalle_tool_run_missing_description():
+@patch("app.agents.lex_pictor.OpenAI")
+def test_dalle_tool_run_missing_description(mock_openai):
+    mock_openai.return_value = MagicMock()
     tool = DallETool()
     result = tool._run()
 
@@ -70,11 +72,8 @@ def test_dalle_tool_run_missing_description():
 
 @patch("app.agents.lex_pictor.agents_config")
 @patch("app.agents.lex_pictor.settings")
-@patch("app.agents.lex_pictor.LLM")
-def test_lex_pictor_initialization(mock_llm, mock_settings, mock_agents_config):
+def test_lex_pictor_initialization(mock_settings, mock_agents_config):
     mock_settings.openai_api_key = "test_api_key"
-    mock_llm_instance = MagicMock()
-    mock_llm.return_value = mock_llm_instance
 
     # Set up the mock for agents_config with proper string values
     mock_agents_config.__getitem__.return_value = {
@@ -95,8 +94,6 @@ def test_lex_pictor_initialization(mock_llm, mock_settings, mock_agents_config):
     assert isinstance(agent.tools[0], DallETool)
     assert agent.allow_delegation is False
     assert agent.verbose is True
-
-    mock_llm.assert_called_once_with(model="gpt-4", api_key="test_api_key")
 
 
 @patch("app.agents.lex_pictor.OpenAI")

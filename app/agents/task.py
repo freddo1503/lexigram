@@ -12,6 +12,7 @@ import re
 from typing import Tuple, cast
 
 from crewai import Task
+from crewai.lite_agent import LiteAgentOutput
 from crewai.tasks.task_output import TaskOutput
 
 from app.config import agents_config
@@ -22,7 +23,7 @@ image_task_config = agents_config["tasks"]["image_generation"]
 caption_task_config = agents_config["tasks"]["caption"]
 
 
-def validate_text_summary(output: TaskOutput) -> Tuple[bool, str]:
+def validate_text_summary(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
     text = output.raw
     required_sections = [
         "Titre officiel",
@@ -51,7 +52,7 @@ text_summary = Task(
 )
 
 
-def validate_image_payload(output: TaskOutput) -> Tuple[bool, TaskOutput | str]:
+def validate_image_payload(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, TaskOutput | LiteAgentOutput | str]:
     if not output.pydantic:
         return False, "L'output n'est pas au format attendu (ImagePayload)"
     payload = cast(ImagePayload, output.pydantic)
@@ -74,7 +75,7 @@ image_generation = Task(
 )
 
 
-def validate_caption(output: TaskOutput) -> Tuple[bool, str]:
+def validate_caption(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
     """
     Validate the output of the caption task.
 
