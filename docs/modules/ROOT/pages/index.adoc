@@ -37,8 +37,8 @@ It grows incrementally through usage: after researching codebase questions, find
 |xref:instagram-auth.adoc[Instagram Authentication]
 |Token management, long-lived token refresh, AWS Secrets Manager storage.
 
-|xref:dalle-image-generation.adoc[DALL-E Image Generation]
-|DalleTool as CrewAI BaseTool, ImagePromptSchema, DALL-E 3 API parameters.
+|xref:mistral-image-generation.adoc[Mistral Image Generation]
+|MistralImageTool as CrewAI BaseTool, Mistral Agents API, S3 upload, PNG-to-JPEG conversion.
 
 |xref:dynamodb.adoc[DynamoDB Data Layer]
 |DynamoDBClient CRUD, textId format, isProcessed flag, scan for unprocessed laws.

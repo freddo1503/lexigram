@@ -16,7 +16,7 @@ All data models use Pydantic `BaseModel` (or `BaseSettings` for configuration).
 |===
 
 Used as the output type for the `image_generation` CrewAI task.
-`image_description` contains DALL-E's revised prompt.
+`image_description` contains the image description sent to Mistral's Agents API.
 
 === app/models/publisher.py
 
@@ -74,4 +74,4 @@ Extends Pydantic `BaseSettings` -- reads from environment variables and `.env` f
 |`image_description: str`
 |===
 
-Input schema for `DalleTool` (CrewAI `BaseTool.args_schema`).
+Input schema for `MistralImageTool` (CrewAI `BaseTool.args_schema`).

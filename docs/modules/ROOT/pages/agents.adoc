@@ -11,7 +11,7 @@ All agents load their role, goal, and backstory from `app/config/agents.yml` (wr
 |Agent |Class |LLM |Tools |Delegation
 
 |AnalysteJuridique |`app/agents/lex_analyst.py` |Mistral Large |None |Default (not set)
-|LexPictor |`app/agents/lex_pictor.py` |GPT-4 |DalleTool |No (`allow_delegation=False`)
+|LexPictor |`app/agents/lex_pictor.py` |Mistral Large |MistralImageTool |No (`allow_delegation=False`)
 |LexMarker |`app/agents/lex_marketer.py` |Mistral Large |None |No (`allow_delegation=False`)
 |===
 
@@ -29,10 +29,10 @@ Extracts key points from French legislation and produces structured analyses.
 
 Visual artist agent that generates illustrative images from legal summaries.
 
-* *Model:* `gpt-4` (API key: `settings.openai_api_key`)
-* *Role:* "Artiste Visuel Innovant"
-* *Goal:* Create captivating visual artworks evoking emotions and communicating complex concepts
-* *Tools:* `[DalleTool()]` -- see xref:dalle-image-generation.adoc[DALL-E Image Generation]
+* *Model:* `mistral/mistral-large-latest` (API key: `settings.mistral_api_key`)
+* *Role:* "Directeur Artistique Numerique"
+* *Goal:* Create minimalist, evocative images illustrating legal concepts for Instagram
+* *Tools:* `[MistralImageTool()]` -- see xref:mistral-image-generation.adoc[Mistral Image Generation]
 * *Delegation:* Disabled
 * *Verbose:* True
 

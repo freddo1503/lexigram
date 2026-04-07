@@ -8,28 +8,30 @@ Task guardrails are enforced in `app/agents/task.py`.
 
 * *Language:* All prompts in French -- matches the domain (French law) and output language
 * *Persona-driven:* Each agent has a detailed backstory that shapes its behavior
-* *Structured output:* Expected outputs are explicitly defined with required sections
+* *Structured prompts:* XML-style tags (`<role>`, `<instructions>`, `<constraints>`) per Mistral prompting guide
+* *Citizen-first:* Aligned with project vision — accessible, neutral, no advice
+* *Anti-hallucination:* Caption task explicitly forbids inventing details absent from source
 * *Guardrails:* Validation functions enforce output constraints programmatically
 
 == Agent Personas
 
 === AnalysteJuridique
 
-* *Role:* "Analyste Juridique Expert"
-* *Backstory emphasis:* Experience in legal analysis, ability to extract key information, evaluate implications, produce structured analysis
-* *Behavioral directive:* Rigorous, synthetic, precise
+* *Role:* "Vulgarisateur Juridique Expert"
+* *Backstory emphasis:* Simplify French law for the general public, translate legal jargon into plain language
+* *Behavioral directive:* Citizen-first framing, adaptive lens by law type, no advice
 
 === LexPictor
 
-* *Role:* "Artiste Visuel Innovant"
-* *Backstory emphasis:* Fuse artistic creativity with digital innovation
-* *Behavioral directive:* Create captivating visual artworks evoking emotions
+* *Role:* "Directeur Artistique Numerique"
+* *Backstory emphasis:* Create conceptual images for social media, translate abstract concepts visually
+* *Behavioral directive:* Minimalist, modern, evocative — no text, logos, or national symbols
 
 === LexMarker
 
-* *Role:* "Specialiste en adaptation et diffusion de contenu juridique sur Instagram"
-* *Backstory emphasis:* Digital communication expert, transform complex texts into synthetic, attractive posts
-* *Behavioral directive:* Impactful, accessible publications
+* *Role:* "Redacteur Instagram specialise en vulgarisation juridique"
+* *Backstory emphasis:* Adapt legal content for Instagram, never invent details absent from source
+* *Behavioral directive:* Faithful to source, emojis mandatory, conditional for uncertain facts
 
 == Output Constraints
 
@@ -52,7 +54,7 @@ Style rules (from agents.yml):
 * Legal/legislative/official context
 * *Exclude:* text, logos, national flags
 
-Validated by `validate_image_payload`: must produce `ImagePayload` with non-empty `image_url` and `image_description`.
+Validated by `validate_image_payload`: must produce `ImagePayload` with non-empty `image_url` (must contain S3 bucket name) and `image_description`.
 
 === Instagram Caption
 
@@ -81,4 +83,6 @@ Required structure (from agents.yml):
 
 Guardrails are Python functions passed to CrewAI's `Task(guardrail=...)` parameter.
 Each returns `Tuple[bool, str | TaskOutput]` -- `(valid, error_message_or_output)`.
-Tasks have `max_retries=2` -- if validation fails, CrewAI retries the task.
+Tasks have `guardrail_max_retries=3` -- if validation fails, CrewAI retries the task.
+
+NOTE: The caption guardrail strips `*` and `_` characters instead of rejecting, since Mistral LLMs produce markdown formatting despite explicit instructions and Instagram renders plain text only.

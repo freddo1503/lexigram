@@ -2,7 +2,7 @@
 :description: Three tasks: text summary, image generation, caption -- descriptions, outputs, guardrails.
 
 Three CrewAI tasks defined in `app/agents/task.py`, configured via `app/config/agents.yml`.
-Tasks execute sequentially. Each has a validation guardrail with `max_retries=2`.
+Tasks execute sequentially. Each has a validation guardrail with `guardrail_max_retries=3`.
 
 == Task Summary
 
@@ -33,12 +33,12 @@ Produces a structured French legal analysis.
 
 == image_generation
 
-Generates an illustrative image via DALL-E 3.
+Generates an illustrative image via Mistral Agents API, uploads to S3.
 
 *Guardrail (`validate_image_payload`):*
 
 * Output must parse as `ImagePayload` Pydantic model
-* `image_url` must not be empty
+* `image_url` must not be empty and must contain the configured S3 bucket name (rejects hallucinated URLs)
 * `image_description` must not be empty
 
 *Output type:* `output_pydantic=ImagePayload`
@@ -63,7 +63,7 @@ Creates an Instagram-ready caption from the legal summary.
 |Max characters |2200 (Instagram limit)
 |Hashtags |Min 5 required, max 30 (agent prompt recommends 5-10)
 |Emojis |At least 1 required
-|Formatting |No `*` or `_` characters (plain text only)
+|Formatting |`*` and `_` characters are stripped automatically (plain text only)
 |===
 
 *Expected caption structure (from agents.yml):*

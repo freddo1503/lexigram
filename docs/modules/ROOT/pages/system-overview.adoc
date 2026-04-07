@@ -24,8 +24,9 @@ EventBridge (cron: weekdays 11:30)
        -> DynamoDB                                [track processed laws]
        -> CrewAI Pipeline
             -> Mistral Large (text analysis)      [AnalysteJuridique]
-            -> GPT-4 + DALL-E 3 (image)           [LexPictor]
+            -> Mistral Agents API (image)         [LexPictor]
             -> Mistral Large (caption)             [LexMarker]
+       -> S3                                      [generated images]
        -> Instagram Graph API                     [publish post + comment]
        -> AWS Secrets Manager                     [API keys, tokens]
 ----
@@ -40,7 +41,8 @@ EventBridge (cron: weekdays 11:30)
 |Package manager |uv
 |Agent framework |CrewAI (sequential pipeline)
 |Text LLM |Mistral Large (`mistral/mistral-large-latest`)
-|Image LLM |GPT-4 + DALL-E 3 (1024x1024)
+|Image generation |Mistral Agents API (`mistral-medium-latest`) + S3
+|Image storage |Amazon S3 (public-read, 30-day lifecycle)
 |Law data source |Legifrance API via `pylegifrance`
 |Publishing |Instagram Graph API v23.0
 |Compute |AWS Lambda (Docker container image)

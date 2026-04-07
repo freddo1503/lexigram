@@ -15,12 +15,10 @@ Pydantic `BaseSettings` with field validation.
 |`aws_secret_name` |str |`"my-env-secrets"` |AWS Secrets Manager secret name
 |`legifrance_client_id` |Optional[str] |None |Legifrance API client ID
 |`legifrance_client_secret` |Optional[str] |None |Legifrance API client secret
-|`openai_api_key` |Optional[str] |None |OpenAI API key (GPT-4 + DALL-E)
-|`mistral_api_key` |Optional[str] |None |Mistral AI API key
-|`access_token` |Optional[str] |None |Instagram Graph API access token
+|`mistral_api_key` |Optional[str] |None |Mistral AI API key (all agents)
+|`instagram_access_token` |Optional[str] |None |Instagram long-lived user access token
 |`dynamo_table_name` |Optional[str] |None |DynamoDB table name
-|`instagram_app_id` |str |`"1290296265534782"` |Instagram/Facebook app ID
-|`instagram_app_secret` |Optional[str] |None |Instagram/Facebook app secret
+|`s3_bucket_name` |Optional[str] |None |S3 bucket name for generated images
 |===
 
 == SettingsManager

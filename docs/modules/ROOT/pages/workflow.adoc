@@ -62,7 +62,7 @@ Legifrance API
         -> Legifrance API (full details)
           -> CrewAI Pipeline
             -> text_summary (Mistral) -> structured analysis
-            -> image_generation (GPT-4 + DALL-E) -> ImagePayload(url, description)
+            -> image_generation (Mistral + S3) -> ImagePayload(url, description)
             -> caption (Mistral) -> Instagram caption text
               -> Instagram Graph API (publish + comment)
                 -> DynamoDB (mark processed)

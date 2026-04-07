@@ -1,0 +1,75 @@
+= Mistral Image Generation
+:description: MistralImageTool as CrewAI BaseTool, Mistral Agents API, S3 upload, PNG-to-JPEG conversion.
+
+Image generation is handled by `MistralImageTool` in `app/agents/lex_pictor.py`.
+
+== MistralImageTool
+
+A CrewAI `BaseTool` subclass that generates images via Mistral's Agents API and uploads them to S3.
+
+[%header,cols="1,2"]
+|===
+|Property |Value
+
+|Name |`"Mistral Image Tool"`
+|Description |Generates images using Mistral's Agents API image generation
+|Input schema |`ImagePromptSchema` (single field: `image_description: str`)
+|Model |`mistral-medium-latest` (Agents API)
+|`result_as_answer` |`True` (tool output becomes agent's final answer)
+|===
+
+== Execution Flow
+
+. LexPictor agent (Mistral Large) crafts a prompt describing the desired image
+. Agent invokes `MistralImageTool._run(image_description=...)`
+. Tool creates a Mistral agent with `tools=[{"type": "image_generation"}]`
+. Tool starts a conversation with the image prompt
+. Extracts `file_id` from response content chunks (`ToolFileChunk`)
+. Downloads generated image via `client.files.download(file_id)`
+. Converts PNG to JPEG via Pillow (Instagram requires JPEG)
+. Uploads JPEG to S3 bucket (`settings.s3_bucket_name`)
+. Returns `ImagePayload(image_url=s3_url, image_description=prompt)` as JSON
+
+== PNG to JPEG Conversion
+
+Instagram's Content Publishing API only supports JPEG.
+The tool converts the image before S3 upload:
+
+* Opens image bytes with `PIL.Image.open()`
+* Converts RGBA/P modes to RGB (JPEG does not support transparency)
+* Saves as JPEG with quality=95
+
+== S3 Upload
+
+* Key format: `images/<uuid>.jpg`
+* Content type: `image/jpeg`
+* URL construction: `<endpoint>/<bucket>/<key>` (local MinIO) or `pass:[https://<bucket>.s3.eu-west-3.amazonaws.com/<key>]` (AWS)
+
+== ImagePayload Model
+
+Defined in `app/models/lex_pictor.py`:
+
+[source,python]
+----
+class ImagePayload(BaseModel):
+    image_url: str
+    image_description: str
+----
+
+== Guardrail Validation
+
+`validate_image_payload` in `app/agents/task.py`:
+
+* Output must parse as `ImagePayload`
+* `image_url` must not be empty
+* `image_url` must contain the configured S3 bucket name (rejects hallucinated URLs)
+* `image_description` must not be empty
+
+== Style Guidelines
+
+From `app/config/agents.yml` (image_generation task):
+
+* *Style:* Minimalist, modern, soft colors, professional
+* *Context:* Evoke the central theme of the law visually
+* *Format:* Instagram square
+* *Exclude:* Text, words, logos, national flags, realistic faces
