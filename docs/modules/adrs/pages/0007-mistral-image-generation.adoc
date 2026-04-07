@@ -1,0 +1,50 @@
+= ADR-0007: Mistral Image Generation (replacing DALL-E)
+:revdate: 2026-04-07
+:status: accepted
+
+== Context
+
+LexPictor previously used GPT-4 to orchestrate DALL-E 3 image generation via the OpenAI API.
+This required maintaining two LLM providers (Mistral for text, OpenAI for images) with separate API keys and billing.
+
+Mistral released a built-in image generation tool in their Agents API, enabling image generation without a separate provider.
+
+Additionally, Instagram's Content Publishing API only accepts JPEG images, while DALL-E returned URLs to externally hosted PNGs.
+
+== Decision
+
+Replace OpenAI/DALL-E with *Mistral Agents API* for image generation and *S3* for image hosting.
+
+Implementation:
+
+* `MistralImageTool` (CrewAI `BaseTool`) creates a Mistral agent with `tools=[{"type": "image_generation"}]`
+* The tool downloads the generated image, converts PNG to JPEG via Pillow, and uploads to S3
+* `result_as_answer=True` ensures the tool output becomes the agent's final answer (prevents hallucinated URLs)
+* The image guardrail validates that the URL contains the configured S3 bucket name
+* LexPictor's LLM changed from `gpt-4` to `mistral/mistral-large-latest`
+
+== Consequences
+
+*Easier:*
+
+* Single LLM provider (Mistral) for all agents -- one API key, one billing account.
+* Images stored in S3 under our control (public-read, 30-day lifecycle).
+* JPEG format compatible with Instagram's Content Publishing API.
+* No dependency on OpenAI SDK.
+
+*Harder:*
+
+* Mistral Agents API is in beta -- response structure may change.
+* PNG-to-JPEG conversion adds Pillow as an explicit dependency.
+* S3 bucket requires public-read access policy for Instagram to fetch images.
+
+== Alternatives Considered
+
+*Keep DALL-E for images:*
+Rejected to consolidate on a single provider and reduce operational complexity.
+
+*Use Mistral API without S3 (direct URL from Mistral):*
+Mistral's image generation returns a file_id, not a public URL. Images must be downloaded and hosted externally.
+
+*Generate JPEG directly:*
+Mistral's image generation returns PNG. Conversion via Pillow is lightweight and reliable.

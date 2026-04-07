@@ -5,3 +5,4 @@
 ** xref:0004-dynamodb-for-law-tracking.adoc[ADR-0004: DynamoDB for Law Tracking]
 ** xref:0005-docker-lambda-deployment.adoc[ADR-0005: Docker Lambda Deployment]
 ** xref:0006-antora-knowledge-base.adoc[ADR-0006: Antora Knowledge Base]
+** xref:0007-mistral-image-generation.adoc[ADR-0007: Mistral Image Generation]
