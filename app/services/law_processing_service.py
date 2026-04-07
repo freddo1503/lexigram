@@ -23,7 +23,7 @@ class LawProcessingService:
     def __init__(self, dynamo_client: DynamoDBClient):
         self.dynamo_client = dynamo_client
         self.loda_api = Loda(get_api_client())
-        self.publisher = Publisher(access_token=settings.access_token)
+        self.publisher = Publisher(access_token=settings.instagram_access_token)
 
     def get_next_unprocessed_law(self) -> Optional[Dict[str, Any]]:
         """

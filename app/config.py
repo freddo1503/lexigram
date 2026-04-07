@@ -47,9 +47,9 @@ class LexigramSettings(BaseSettings):
     # AI API keys
     mistral_api_key: Optional[str] = Field(default=None, description="Mistral API key")
 
-    # Application tokens
-    access_token: Optional[str] = Field(
-        default=None, description="Application access token"
+    # Instagram authentication
+    instagram_access_token: Optional[str] = Field(
+        default=None, description="Instagram long-lived user access token"
     )
 
     # DynamoDB configuration
