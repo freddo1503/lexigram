@@ -12,19 +12,10 @@ inputs:
   aws-secret-access-key:
     description: 'AWS Secret Access Key'
     required: true
-  env-content:
-    description: 'Content for .env file'
-    required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Create .env file
-      shell: bash
-      run: |
-        install -m 600 /dev/null .env
-        printf "%s" "${{ inputs.env-content }}" > .env
-
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:

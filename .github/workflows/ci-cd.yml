@@ -13,6 +13,11 @@ jobs:
     container:
       image: python:3.12
 
+    env:
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      LEGIFRANCE_CLIENT_ID: ${{ secrets.LEGIFRANCE_CLIENT_ID }}
+      LEGIFRANCE_CLIENT_SECRET: ${{ secrets.LEGIFRANCE_CLIENT_SECRET }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -23,7 +28,6 @@ jobs:
           install-all-extras: 'true'
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          env-content: ${{ secrets.ENV }}
 
       - name: Run tests with coverage
         run: just coverage
@@ -65,7 +69,6 @@ jobs:
           install-all-extras: 'false'
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          env-content: ${{ secrets.ENV }}
 
       - name: Install AWS CDK
         run: npm install -g aws-cdk
