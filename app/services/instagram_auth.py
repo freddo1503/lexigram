@@ -9,6 +9,14 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger(__name__)
 
 
+def _safe_error_message(response: requests.Response) -> str:
+    """Extract error message from API response without leaking raw body."""
+    try:
+        return response.json().get("error", {}).get("message", "unknown error")
+    except Exception:
+        return "non-JSON error response"
+
+
 class InstagramTokenManager:
     """
     Manages Instagram access tokens with automatic refresh capabilities.
@@ -104,7 +112,9 @@ class InstagramTokenManager:
                 return new_token
             else:
                 logger.error(
-                    f"Instagram token refresh failed: {response.status_code} - {response.text}"
+                    "Instagram token refresh failed: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
 
                 # Fallback to Facebook Graph API method if Instagram endpoint fails
@@ -146,7 +156,9 @@ class InstagramTokenManager:
                 return new_token
             else:
                 logger.error(
-                    f"Fallback token refresh failed: {response.status_code} - {response.text}"
+                    "Fallback token refresh failed: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
 
         except Exception as e:
@@ -248,7 +260,6 @@ class InstagramTokenManager:
         )
 
 
-
 class SystemUserTokenGenerator:
     """
     Generates permanent system user tokens for Instagram Business accounts.
@@ -288,10 +299,13 @@ class SystemUserTokenGenerator:
                 logger.info("App access token obtained successfully")
                 return app_token
             else:
+                error_msg = _safe_error_message(response)
                 logger.error(
-                    f"Failed to get app access token: {response.status_code} - {response.text}"
+                    "Failed to get app access token: status=%d error=%s",
+                    response.status_code,
+                    error_msg,
                 )
-                raise Exception(f"App token request failed: {response.text}")
+                raise Exception(f"App token request failed: {error_msg}")
 
         except Exception as e:
             logger.error(f"Error getting app access token: {e}")
@@ -321,7 +335,9 @@ class SystemUserTokenGenerator:
                 return businesses
             else:
                 logger.error(
-                    f"Failed to list businesses: {response.status_code} - {response.text}"
+                    "Failed to list businesses: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
                 return []
 
@@ -357,7 +373,9 @@ class SystemUserTokenGenerator:
                 return system_user_id
             else:
                 logger.error(
-                    f"Failed to create system user: {response.status_code} - {response.text}"
+                    "Failed to create system user: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
                 return None
 
@@ -398,7 +416,9 @@ class SystemUserTokenGenerator:
                 return permanent_token
             else:
                 logger.error(
-                    f"Failed to generate system user token: {response.status_code} - {response.text}"
+                    "Failed to generate system user token: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
                 return None
 
@@ -444,7 +464,9 @@ class SystemUserTokenGenerator:
                 return None
             else:
                 logger.error(
-                    f"Failed to get pages: {response.status_code} - {response.text}"
+                    "Failed to get pages: status=%d error=%s",
+                    response.status_code,
+                    _safe_error_message(response),
                 )
                 return None
 
