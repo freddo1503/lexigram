@@ -1,5 +1,5 @@
 = ADR-0003: Mistral AI for Summarization
-:revdate: 2025-01-01
+:revdate: 2026-04-07
 :status: accepted
 
 == Context
@@ -16,21 +16,18 @@ Requirements:
 
 == Decision
 
-Use *Mistral Large* (`mistral/mistral-large-latest`) for the text-focused agents (AnalysteJuridique and LexMarker).
-
-GPT-4 is reserved for LexPictor where it orchestrates DALL-E image generation — a task that benefits from GPT-4's superior instruction-following for prompt engineering.
+Use *Mistral Large* (`mistral/mistral-large-latest`) for all three agents — AnalysteJuridique, LexPictor, and LexMarker (see xref:0007-mistral-image-generation.adoc[ADR-0007]).
 
 == Consequences
 
 *Easier:*
 
 * Mistral AI is a French company with strong French language performance.
-* Lower cost per token compared to GPT-4 for text tasks.
-* Separating text (Mistral) from image (GPT-4) models optimizes cost without sacrificing quality.
+* Single LLM provider for all agents simplifies operations and billing.
+* Competitive cost per token for daily batch processing.
 
 *Harder:*
 
-* Two LLM providers to manage (Mistral + OpenAI) — two API keys, two billing accounts.
 * Mistral model naming changes (e.g., `mistral-large-latest`) can introduce breaking changes.
 
 == Alternatives Considered

@@ -1,5 +1,5 @@
 = ADR-0002: CrewAI Framework
-:revdate: 2025-01-01
+:revdate: 2026-04-07
 :status: accepted
 
 == Context
@@ -11,7 +11,7 @@ Requirements:
 * Python-native (the entire codebase is Python 3.12)
 * Support for sequential task execution with context passing
 * Ability to assign different LLM models per agent
-* Custom tool integration (DALL-E image generation)
+* Custom tool integration (Mistral image generation)
 * YAML-based agent/task configuration for non-code prompt editing
 
 == Decision
@@ -20,7 +20,7 @@ Use *CrewAI* as the multi-agent orchestration framework.
 
 Agents and tasks are defined in `app/config/agents.yml` (French-language prompts) and loaded at runtime.
 CrewAI's `Crew` class wires agents to tasks and executes them sequentially.
-Custom tools (e.g., `DalleTool`) are integrated via CrewAI's `BaseTool` interface.
+Custom tools (e.g., `MistralImageTool`) are integrated via CrewAI's `BaseTool` interface.
 
 == Consequences
 
@@ -28,7 +28,7 @@ Custom tools (e.g., `DalleTool`) are integrated via CrewAI's `BaseTool` interfac
 
 * Agent/task configuration in YAML allows prompt iteration without code changes.
 * Built-in context passing between sequential tasks.
-* `BaseTool` abstraction makes it simple to wrap external APIs (DALL-E).
+* `BaseTool` abstraction makes it simple to wrap external APIs (Mistral Agents API).
 * Active open-source community and rapid development.
 
 *Harder:*

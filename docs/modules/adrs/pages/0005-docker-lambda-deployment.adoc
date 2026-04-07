@@ -4,7 +4,7 @@
 
 == Context
 
-The Lambda function has heavy Python dependencies (CrewAI, boto3, OpenAI SDK, pylegifrance, beautifulsoup4).
+The Lambda function has heavy Python dependencies (CrewAI, boto3, Mistral AI SDK, pylegifrance, beautifulsoup4).
 The total uncompressed dependency size exceeds the 250 MB Lambda zip deployment limit.
 
 Additionally, cold-start latency matters because the function runs a multi-step AI pipeline that already takes several minutes.
