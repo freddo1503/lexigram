@@ -14,7 +14,7 @@ from crewai import Task
 from crewai.lite_agent import LiteAgentOutput
 from crewai.tasks.task_output import TaskOutput
 
-from app.config import agents_config
+from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
 from app.text_utils import EMOJI_PATTERN
 
@@ -62,6 +62,13 @@ def validate_image_payload(
         return False, "L'URL de l'image est vide"
     if not payload.image_description:
         return False, "La description de l'image est vide"
+    # Reject hallucinated URLs — must come from our S3 bucket
+    bucket = settings.s3_bucket_name or ""
+    if bucket and bucket not in payload.image_url:
+        return False, (
+            f"L'URL de l'image ne provient pas du bucket S3 configuré ({bucket}). "
+            "Utilisez l'outil Mistral Image Tool pour générer l'image."
+        )
     return True, output
 
 
@@ -123,13 +130,10 @@ def validate_caption(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
             "La légende doit contenir au moins un emoji pour améliorer l'engagement.",
         )
 
-    # Check for formatting that's not allowed (asterisks and underscores for formatting)
-    # Note: We now allow hashtags as they're required
-    if "*" in text or "_" in text:
-        return (
-            False,
-            "La légende contient des caractères de formatage (* _) qui ne sont pas autorisés.",
-        )
+    # Strip markdown formatting characters — LLMs produce these despite instructions,
+    # and Instagram renders plain text only.
+    text = text.replace("*", "").replace("_", "")
+
     return True, text
 
 

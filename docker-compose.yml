@@ -101,6 +101,19 @@ services:
       retries: 5
       start_period: 1s
 
+  # Set public-read policy on lexigram-images bucket so generated images are viewable
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      sh -c "
+      mc alias set local http://minio:9000 minio miniosecret &&
+      mc anonymous set download local/lexigram-images
+      "
+
   redis:
     image: redis:7
     restart: always

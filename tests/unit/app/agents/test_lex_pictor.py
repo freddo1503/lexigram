@@ -30,9 +30,12 @@ def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
     mock_agent.id = "agent-123"
     mock_mistral_client.beta.agents.create.return_value = mock_agent
 
-    # Mock conversation response with file_id
+    # Mock conversation response — file_id is nested in content chunks
+    # See: https://docs.mistral.ai/agents/tools/built-in/image_generation
+    mock_chunk = MagicMock()
+    mock_chunk.file_id = "file-456"
     mock_output = MagicMock()
-    mock_output.file_id = "file-456"
+    mock_output.content = [mock_chunk]
     mock_response = MagicMock()
     mock_response.outputs = [mock_output]
     mock_mistral_client.beta.conversations.start.return_value = mock_response
@@ -48,10 +51,11 @@ def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
         mock_settings.s3_bucket_name = "test-bucket"
         result = tool._run(image_description="A legal scene")
 
-    assert isinstance(result, ImagePayload)
-    assert "test-bucket" in result.image_url
-    assert result.image_url.endswith(".png")
-    assert result.image_description == "A legal scene"
+    assert isinstance(result, str)
+    payload = ImagePayload.model_validate_json(result)
+    assert "test-bucket" in payload.image_url
+    assert payload.image_url.endswith(".png")
+    assert payload.image_description == "A legal scene"
 
     mock_s3_client.put_object.assert_called_once()
     call_kwargs = mock_s3_client.put_object.call_args[1]
@@ -75,17 +79,17 @@ def test_lex_pictor_initialization(mock_settings, mock_agents_config):
 
     mock_agents_config.__getitem__.return_value = {
         "lex_pictor": {
-            "role": "Artiste Visuel Innovant",
-            "goal": "Créer des oeuvres d'art visuelles captivantes et originales",
-            "backstory": "LexPictor est un artiste visuel passionné",
+            "role": "Directeur Artistique Numérique",
+            "goal": "Créer des images minimalistes et évocatrices",
+            "backstory": "Vous êtes spécialisé dans la création d'images conceptuelles",
         }
     }
 
     agent = LexPictor()
 
-    assert agent.role == "Artiste Visuel Innovant"
-    assert "Créer des oeuvres d'art visuelles captivantes" in agent.goal
-    assert "LexPictor est un artiste visuel passionné" in agent.backstory
+    assert agent.role == "Directeur Artistique Numérique"
+    assert "images minimalistes" in agent.goal
+    assert "images conceptuelles" in agent.backstory
     assert agent.tools is not None
     assert len(agent.tools) == 1
     assert isinstance(agent.tools[0], MistralImageTool)
@@ -112,8 +116,10 @@ def test_mistral_image_tool_run_no_file_id(mock_mistral_client):
     mock_agent.id = "agent-123"
     mock_mistral_client.beta.agents.create.return_value = mock_agent
 
-    # Mock response with no file_id
-    mock_output = MagicMock(spec=[])  # empty spec = no file_id attribute
+    # Mock response with no file_id in content chunks
+    mock_chunk = MagicMock(spec=[])  # empty spec = no file_id attribute
+    mock_output = MagicMock()
+    mock_output.content = [mock_chunk]
     mock_response = MagicMock()
     mock_response.outputs = [mock_output]
     mock_mistral_client.beta.conversations.start.return_value = mock_response

@@ -20,10 +20,15 @@ class ImagePromptSchema(BaseModel):
 
 class MistralImageTool(BaseTool):
     name: str = "Mistral Image Tool"
-    description: str = "Generates images using Mistral's Agents API image generation."
+    description: str = (
+        "Generates an image from a text description using Mistral's API, "
+        "uploads it to S3, and returns the image URL. "
+        "You MUST use this tool to produce the image — do not invent or guess URLs."
+    )
     args_schema: Type[BaseModel] = ImagePromptSchema
+    result_as_answer: bool = True
 
-    def _run(self, **kwargs) -> ImagePayload | str:
+    def _run(self, **kwargs) -> str:
         image_description = kwargs.get("image_description")
         if not image_description:
             return "Image description is required."
@@ -43,11 +48,16 @@ class MistralImageTool(BaseTool):
             inputs=image_description,
         )
 
-        # Extract file_id from the response outputs
+        # Extract file_id from response — nested in content chunks as ToolFileChunk
+        # See: https://docs.mistral.ai/agents/tools/built-in/image_generation
         file_id = None
         for output in response.outputs:
-            if hasattr(output, "file_id") and output.file_id:
-                file_id = output.file_id
+            if hasattr(output, "content"):
+                for chunk in output.content:
+                    if hasattr(chunk, "file_id") and chunk.file_id:
+                        file_id = chunk.file_id
+                        break
+            if file_id:
                 break
 
         if not file_id:
@@ -78,7 +88,7 @@ class MistralImageTool(BaseTool):
         return ImagePayload(
             image_url=image_url,
             image_description=image_description,
-        )
+        ).model_dump_json()
 
 
 class LexPictor(Agent):

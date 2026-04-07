@@ -50,10 +50,10 @@ def test_text_summary_min_words(text_summary_output, langfuse_client, trace_id):
 
 
 def test_image_valid(image_generation_output, langfuse_client, trace_id):
-    """Verify image generation produced a valid result."""
+    """Verify image generation produced a valid result stored in S3."""
     payload = image_generation_output.pydantic
     url_valid = bool(
-        payload and payload.image_url and payload.image_url.startswith("http")
+        payload and payload.image_url and "lexigram-images" in payload.image_url
     )
     desc_valid = bool(payload and payload.image_description)
     passed = url_valid and desc_valid
@@ -63,10 +63,11 @@ def test_image_valid(image_generation_output, langfuse_client, trace_id):
         trace_id,
         "image_valid",
         passed,
-        f"url_valid={url_valid}, desc_valid={desc_valid}",
+        f"url_valid={url_valid}, desc_valid={desc_valid}, url={getattr(payload, 'image_url', 'N/A')[:100]}",
     )
     assert passed, (
-        f"Image validation failed: url_valid={url_valid}, desc_valid={desc_valid}"
+        f"Image validation failed: url_valid={url_valid}, desc_valid={desc_valid}, "
+        f"url={getattr(payload, 'image_url', 'N/A')[:100]}"
     )
 
 
