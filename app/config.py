@@ -128,11 +128,11 @@ class SettingsManager:
                 if field_name in settings_dict and settings_dict[field_name] is None:
                     setattr(self._settings, field_name, secret_value)
 
-                # Also set as environment variable for pylegifrance
-                if field_name == "legifrance_client_id":
-                    os.environ["LEGIFRANCE_CLIENT_ID"] = secret_value
-                elif field_name == "legifrance_client_secret":
-                    os.environ["LEGIFRANCE_CLIENT_SECRET"] = secret_value
+                    # Also set as environment variable for pylegifrance
+                    if field_name == "legifrance_client_id":
+                        os.environ["LEGIFRANCE_CLIENT_ID"] = secret_value
+                    elif field_name == "legifrance_client_secret":
+                        os.environ["LEGIFRANCE_CLIENT_SECRET"] = secret_value
 
     @property
     def settings(self) -> LexigramSettings:
