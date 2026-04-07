@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -98,10 +99,10 @@ def get_all_secrets(
         response = client.get_secret_value(SecretId=secret_name)
         secret = json.loads(response["SecretString"])
         _secrets_cache[secret_name] = secret
-        logger.debug(f"Secrets loaded and cached for '{secret_name}'.")
+        logger.debug("Secrets loaded and cached for '%s'.", secret_name)
         return secret
     except Exception as e:
-        logger.error(f"Error retrieving secret '{secret_name}': {e}")
+        logger.error("Error retrieving secret '%s': %s", secret_name, e)
         return {}
 
 
@@ -111,8 +112,6 @@ class SettingsManager:
     def __init__(self):
         self._settings = LexigramSettings()
         self._load_secrets()
-        self._api_config = None
-        self._api_client = None
 
         # Configure logging
         logger.setLevel(self._settings.log_level)
@@ -140,19 +139,15 @@ class SettingsManager:
         """Get the current settings instance."""
         return self._settings
 
-    @property
+    @cached_property
     def api_config(self) -> ApiConfig:
-        """Get the API config instance, creating it if needed."""
-        if self._api_config is None:
-            self._api_config = ApiConfig.from_env()
-        return self._api_config
+        """Get the API config instance, creating it on first access."""
+        return ApiConfig.from_env()
 
-    @property
+    @cached_property
     def api_client(self) -> LegifranceClient:
-        """Get the API client instance, creating it if needed."""
-        if self._api_client is None:
-            self._api_client = LegifranceClient(self.api_config)
-        return self._api_client
+        """Get the API client instance, creating it on first access."""
+        return LegifranceClient(self.api_config)
 
 
 # Initialize the settings manager
@@ -184,11 +179,11 @@ def load_agents_config() -> dict[str, dict]:
     try:
         with open(AGENTS_CONFIG_PATH, "r", encoding="utf-8") as file:
             config = yaml.safe_load(file)
-        logger.debug(f"Agents configuration loaded from {AGENTS_CONFIG_PATH}")
+        logger.debug("Agents configuration loaded from %s", AGENTS_CONFIG_PATH)
         return config
     except Exception as e:
         logger.error(
-            f"Error loading agents configuration from {AGENTS_CONFIG_PATH}: {e}"
+            "Error loading agents configuration from %s: %s", AGENTS_CONFIG_PATH, e
         )
         return {"agents": {}, "tasks": {}}
 

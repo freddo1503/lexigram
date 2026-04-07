@@ -1,6 +1,8 @@
 import logging
 import time
-from typing import Optional
+from typing import Any, Dict, Optional
+
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.config import settings
 from app.errors.exceptions import (
@@ -10,7 +12,7 @@ from app.errors.exceptions import (
     PublishingError,
     RateLimitError,
 )
-from app.errors.handlers import retry, safe_parse_json, safe_request
+from app.errors.handlers import safe_parse_json, safe_request
 from app.models.publisher import (
     HttpUrl,
     MediaCreationResponse,
@@ -42,7 +44,7 @@ class Publisher:
                 )
                 logger.info("Instagram token obtained/validated successfully")
             except Exception as e:
-                logger.error(f"Failed to obtain Instagram token: {e}")
+                logger.error("Failed to obtain Instagram token: %s", e)
                 if access_token:
                     logger.warning("Falling back to provided access token")
                     self.access_token = access_token
@@ -62,18 +64,30 @@ class Publisher:
 
         self._get_instagram_user_id()
 
-    @retry(max_attempts=3)
+    def _instagram_api_call(
+        self, method: str, url: str, operation: str, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Make an Instagram API call with consistent error handling.
+
+        Returns parsed JSON response dict. Lets DataParsingError and
+        RateLimitError propagate; wraps anything else in PublishingError.
+        """
+        try:
+            response = safe_request(method, url, api_name="Instagram", **kwargs)
+            return safe_parse_json(response, api_name="Instagram")
+        except (DataParsingError, RateLimitError):
+            raise
+        except Exception as e:
+            raise PublishingError(
+                "Error in Instagram %s: %s" % (operation, e),
+                original_exception=e,
+            ) from e
+
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=60), reraise=True
+    )
     def _get_instagram_user_id(self) -> str:
-        """
-        Retrieve the Instagram User ID associated with the access token.
-
-        Returns:
-            str: The Instagram User ID.
-
-        Raises:
-            AuthenticationError: If authentication with Instagram fails.
-            InstagramError: For other Instagram-specific errors.
-        """
+        """Retrieve the Instagram User ID associated with the access token."""
         params = {"fields": "id", "access_token": self.access_token}
 
         try:
@@ -100,148 +114,92 @@ class Publisher:
         except Exception as e:
             if not isinstance(e, (AuthenticationError, DataParsingError)):
                 raise InstagramError(
-                    f"Error retrieving Instagram User ID: {str(e)}",
+                    "Error retrieving Instagram User ID: %s" % e,
                     original_exception=e,
                 ) from e
             raise
 
-    @retry(max_attempts=3)
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=60), reraise=True
+    )
     def create_media_object(self, image_url: HttpUrl, caption: str) -> str:
-        """
-        Create a media object on Instagram.
+        """Create a media object on Instagram."""
+        media_payload = MediaPayload(image_url=image_url, caption=caption)
+        media_url = f"{self.instagram_graph_url}/{self.ig_user_id}/media"
+        params = {"access_token": self.access_token}
 
-        Args:
-            image_url: URL of the image to post.
-            caption: Caption for the post.
+        logger.info(
+            "Creating Instagram media object with caption: %s",
+            caption[:30] + "..." if len(caption) > 30 else caption,
+        )
 
-        Returns:
-            str: The ID of the created media object.
+        response_data = self._instagram_api_call(
+            "POST",
+            media_url,
+            "media creation",
+            params=params,
+            json=media_payload.model_dump(mode="json"),
+        )
 
-        Raises:
-            PublishingError: If media creation fails.
-            InstagramError: For other Instagram-specific errors.
-        """
         try:
-            media_payload = MediaPayload(image_url=image_url, caption=caption)
-            media_url = f"{self.instagram_graph_url}/{self.ig_user_id}/media"
-            params = {"access_token": self.access_token}
-
-            logger.info(
-                "Creating Instagram media object with caption: %s",
-                caption[:30] + "..." if len(caption) > 30 else caption,
-            )
-
-            response = safe_request(
-                "POST",
-                media_url,
-                api_name="Instagram",
-                params=params,
-                json=media_payload.model_dump(mode="json"),
-            )
-
-            response_data = safe_parse_json(response, api_name="Instagram")
-
-            try:
-                creation_response = MediaCreationResponse(**response_data)
-                logger.info(
-                    "Successfully created Instagram media object with ID: %s",
-                    creation_response.id,
-                )
-                return creation_response.id
-            except Exception as e:
-                raise DataParsingError(
-                    "Failed to parse Instagram media creation response",
-                    original_exception=e,
-                    details={"response": response_data},
-                )
-
+            creation_response = MediaCreationResponse(**response_data)
         except Exception as e:
-            if not isinstance(e, (DataParsingError, RateLimitError)):
-                raise PublishingError(
-                    f"Error creating Instagram media object: {str(e)}",
-                    original_exception=e,
-                    details={
-                        "image_url": str(image_url),
-                        "caption_length": len(caption),
-                    },
-                ) from e
-            raise
+            raise DataParsingError(
+                "Failed to parse Instagram media creation response",
+                original_exception=e,
+                details={"response": response_data},
+            )
+
+        logger.info(
+            "Successfully created Instagram media object with ID: %s",
+            creation_response.id,
+        )
+        return creation_response.id
 
     def wait_for_media_processing(
         self, creation_id: str, max_attempts: int = 10, sleep_interval: int = 5
     ) -> str:
-        """
-        Wait for media processing to complete on Instagram.
+        """Wait for media processing to complete on Instagram."""
+        status_url = f"{self.instagram_graph_url}/{creation_id}"
+        params = {"fields": "status_code", "access_token": self.access_token}
 
-        Args:
-            creation_id: ID of the media being processed.
-            max_attempts: Maximum number of status check attempts.
-            sleep_interval: Time to wait between status checks in seconds.
-
-        Returns:
-            str: The status code of the processed media.
-
-        Raises:
-            PublishingError: If media processing fails or times out.
-            InstagramError: For other Instagram-specific errors.
-        """
-        attempts = 0
-        while attempts < max_attempts:
+        for attempt in range(1, max_attempts + 1):
             time.sleep(sleep_interval)
-            status_url = f"{self.instagram_graph_url}/{creation_id}"
-            params = {"fields": "status_code", "access_token": self.access_token}
+            logger.info(
+                "Checking media processing status (attempt %d/%d)",
+                attempt,
+                max_attempts,
+            )
+
+            response_data = self._instagram_api_call(
+                "GET",
+                status_url,
+                "status check",
+                params=params,
+            )
 
             try:
-                logger.info(
-                    "Checking media processing status (attempt %d/%d)",
-                    attempts + 1,
-                    max_attempts,
-                )
-
-                response = safe_request(
-                    "GET", status_url, api_name="Instagram", params=params
-                )
-
-                response_data = safe_parse_json(response, api_name="Instagram")
-
-                try:
-                    status_response = StatusResponse(**response_data)
-                    logger.info(
-                        "Media processing status: %s", status_response.status_code
-                    )
-
-                    if status_response.status_code == "FINISHED":
-                        return status_response.status_code
-                    elif status_response.status_code == "ERROR":
-                        raise PublishingError(
-                            "Instagram media processing failed",
-                            details={
-                                "creation_id": creation_id,
-                                "status": status_response.status_code,
-                            },
-                        )
-                except Exception as e:
-                    if not isinstance(e, PublishingError):
-                        raise DataParsingError(
-                            "Failed to parse Instagram status response",
-                            original_exception=e,
-                            details={"response": response_data},
-                        )
-                    raise
-
-                attempts += 1
+                status_response = StatusResponse(**response_data)
             except Exception as e:
-                if not isinstance(
-                    e, (DataParsingError, RateLimitError, PublishingError)
-                ):
-                    raise InstagramError(
-                        f"Error checking Instagram media status: {str(e)}",
-                        original_exception=e,
-                        details={"creation_id": creation_id, "attempt": attempts + 1},
-                    ) from e
-                raise
+                raise DataParsingError(
+                    "Failed to parse Instagram status response",
+                    original_exception=e,
+                    details={"response": response_data},
+                )
 
-        # If we've exhausted all attempts
+            logger.info("Media processing status: %s", status_response.status_code)
+
+            if status_response.status_code == "FINISHED":
+                return status_response.status_code
+            elif status_response.status_code == "ERROR":
+                raise PublishingError(
+                    "Instagram media processing failed",
+                    details={
+                        "creation_id": creation_id,
+                        "status": status_response.status_code,
+                    },
+                )
+
         raise PublishingError(
             "Instagram media processing timed out",
             details={
@@ -251,107 +209,69 @@ class Publisher:
             },
         )
 
-    @retry(max_attempts=3)
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=60), reraise=True
+    )
     def publish_post(self, creation_id: str) -> str:
-        """
-        Publish a media object as a post on Instagram.
+        """Publish a media object as a post on Instagram."""
+        publish_url = f"{self.instagram_graph_url}/{self.ig_user_id}/media_publish"
+        publish_payload = {
+            "creation_id": creation_id,
+            "access_token": self.access_token,
+        }
 
-        Args:
-            creation_id: ID of the media to publish.
+        logger.info("Publishing Instagram post with creation ID: %s", creation_id)
 
-        Returns:
-            str: The ID of the published post.
+        response_data = self._instagram_api_call(
+            "POST",
+            publish_url,
+            "publish",
+            data=publish_payload,
+        )
 
-        Raises:
-            PublishingError: If publishing fails.
-            InstagramError: For other Instagram-specific errors.
-        """
         try:
-            publish_url = f"{self.instagram_graph_url}/{self.ig_user_id}/media_publish"
-            publish_payload = {
-                "creation_id": creation_id,
-                "access_token": self.access_token,
-            }
-
-            logger.info("Publishing Instagram post with creation ID: %s", creation_id)
-
-            response = safe_request(
-                "POST", publish_url, api_name="Instagram", data=publish_payload
+            publish_response = PublishResponse(**response_data)
+        except Exception as e:
+            raise DataParsingError(
+                "Failed to parse Instagram publish response",
+                original_exception=e,
+                details={"response": response_data},
             )
 
-            response_data = safe_parse_json(response, api_name="Instagram")
-
-            try:
-                publish_response = PublishResponse(**response_data)
-                logger.info(
-                    "Successfully published Instagram post with ID: %s",
-                    publish_response.id,
-                )
-                return publish_response.id
-            except Exception as e:
-                raise DataParsingError(
-                    "Failed to parse Instagram publish response",
-                    original_exception=e,
-                    details={"response": response_data},
-                )
-
-        except Exception as e:
-            if not isinstance(e, (DataParsingError, RateLimitError)):
-                raise PublishingError(
-                    f"Error publishing Instagram post: {str(e)}",
-                    original_exception=e,
-                    details={"creation_id": creation_id},
-                ) from e
-            raise
+        logger.info(
+            "Successfully published Instagram post with ID: %s",
+            publish_response.id,
+        )
+        return publish_response.id
 
     def publish(self, image_url: HttpUrl, caption: str) -> str:
         creation_id = self.create_media_object(image_url, caption)
         self.wait_for_media_processing(creation_id)
         return self.publish_post(creation_id)
 
-    @retry(max_attempts=3)
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=60), reraise=True
+    )
     def comment_on_post(self, media_id: str, message: str) -> str:
-        """
-        Comment on an existing Instagram post.
+        """Comment on an existing Instagram post."""
+        comment_url = f"{self.instagram_graph_url}/{media_id}/comments"
+        payload = {"message": message, "access_token": self.access_token}
 
-        Args:
-            media_id: The ID of the media (post) to comment on.
-            message: The comment message.
+        logger.info("Posting comment on Instagram media ID: %s", media_id)
 
-        Returns:
-            str: The ID of the created comment.
+        comment_data = self._instagram_api_call(
+            "POST",
+            comment_url,
+            "comment",
+            data=payload,
+        )
+        comment_id = comment_data.get("id")
 
-        Raises:
-            PublishingError: If commenting fails.
-            InstagramError: For other Instagram-specific errors.
-        """
-        try:
-            comment_url = f"{self.instagram_graph_url}/{media_id}/comments"
-            payload = {"message": message, "access_token": self.access_token}
-
-            logger.info("Posting comment on Instagram media ID: %s", media_id)
-
-            response = safe_request(
-                "POST", comment_url, api_name="Instagram", data=payload
+        if not comment_id:
+            raise DataParsingError(
+                "Failed to get comment ID from Instagram response",
+                details={"response": comment_data},
             )
 
-            comment_data = safe_parse_json(response, api_name="Instagram")
-            comment_id = comment_data.get("id")
-
-            if not comment_id:
-                raise DataParsingError(
-                    "Failed to get comment ID from Instagram response",
-                    details={"response": comment_data},
-                )
-
-            logger.info("Successfully posted comment with ID: %s", comment_id)
-            return comment_id
-
-        except Exception as e:
-            if not isinstance(e, (DataParsingError, RateLimitError)):
-                raise PublishingError(
-                    f"Error posting comment on Instagram media {media_id}: {str(e)}",
-                    original_exception=e,
-                    details={"media_id": media_id, "message_length": len(message)},
-                ) from e
-            raise
+        logger.info("Successfully posted comment with ID: %s", comment_id)
+        return comment_id

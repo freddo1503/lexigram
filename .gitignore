@@ -1,7 +1,7 @@
 .env
 /.venv/
 /.idea/
-/__pycache__/
+__pycache__/
 /cdk.out/
 /cdk.context.json
 .coverage*

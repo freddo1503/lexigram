@@ -38,6 +38,7 @@ eval = [
     "anthropic>=0.89.0",
     "langfuse>=4.0.6",
     "openinference-instrumentation-crewai>=1.1.1",
+    "pytest-timeout",
 ]
 
 [tool.ty.environment]

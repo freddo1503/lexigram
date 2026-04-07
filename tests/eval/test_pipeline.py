@@ -4,8 +4,7 @@ Programmatic checks validate hard constraints (format, length, structure).
 LLM-as-judge tests use Claude Opus to evaluate soft criteria (quality, clarity).
 """
 
-import re
-
+from app.text_utils import EMOJI_PATTERN
 from tests.eval.scoring import score_programmatic, score_with_claude_judge
 
 # ---------------------------------------------------------------------------
@@ -54,7 +53,7 @@ def test_image_valid(image_generation_output, langfuse_client, trace_id):
     """Verify image generation produced a valid result."""
     payload = image_generation_output.pydantic
     url_valid = bool(
-        payload and payload.image_url and payload.image_url.startswith("https://")
+        payload and payload.image_url and payload.image_url.startswith("http")
     )
     desc_valid = bool(payload and payload.image_description)
     passed = url_valid and desc_valid
@@ -122,19 +121,7 @@ def test_caption_hashtags(caption_output, langfuse_client, trace_id):
 def test_caption_emojis(caption_output, langfuse_client, trace_id):
     """Verify caption contains at least one emoji."""
     text = caption_output.raw
-    emoji_pattern = re.compile(
-        "["
-        "\U0001f600-\U0001f64f"
-        "\U0001f300-\U0001f5ff"
-        "\U0001f680-\U0001f6ff"
-        "\U0001f900-\U0001f9ff"
-        "\U0001fa70-\U0001faff"
-        "\U00002702-\U000027b0"
-        "\U000024c2-\U0001f251"
-        "]+",
-        flags=re.UNICODE,
-    )
-    passed = bool(emoji_pattern.search(text))
+    passed = bool(EMOJI_PATTERN.search(text))
 
     score_programmatic(
         langfuse_client,

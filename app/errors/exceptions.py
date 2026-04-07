@@ -25,11 +25,11 @@ class LexigramError(Exception):
         self.details = details or {}
 
         # Log the error with details
-        log_message = f"{message}"
+        log_message = message
         if original_exception:
-            log_message += f" Original exception: {original_exception}"
+            log_message += " Original exception: %s" % original_exception
         if details:
-            log_message += f" Details: {details}"
+            log_message += " Details: %s" % details
 
         logger.error(log_message)
 
@@ -108,12 +108,6 @@ class DataError(LexigramError):
 
 class DataParsingError(DataError):
     """Exception raised when parsing data fails."""
-
-    pass
-
-
-class DataIntegrityError(DataError):
-    """Exception raised when data integrity is compromised."""
 
     pass
 

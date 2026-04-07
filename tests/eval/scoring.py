@@ -12,7 +12,7 @@ def score_programmatic(
     langfuse_client, trace_id: str, name: str, passed: bool, comment: str = ""
 ):
     """Submit a programmatic boolean score to Langfuse."""
-    langfuse_client.score(
+    langfuse_client.create_score(
         trace_id=trace_id,
         name=name,
         value=1.0 if passed else 0.0,
@@ -42,8 +42,13 @@ def score_with_claude_judge(
     response_text = response.content[0].text  # ty: ignore[unresolved-attribute]
 
     try:
-        scores = json.loads(response_text)
-    except json.JSONDecodeError:
+        # Strip markdown code fences if present
+        clean = response_text.strip()
+        if clean.startswith("```"):
+            clean = clean.split("\n", 1)[1]
+            clean = clean.rsplit("```", 1)[0]
+        scores = json.loads(clean)
+    except (json.JSONDecodeError, IndexError):
         logger.warning(
             "Failed to parse judge response as JSON: %s", response_text[:200]
         )
@@ -52,7 +57,7 @@ def score_with_claude_judge(
     overall = scores.get("overall", 3)
     comment = scores.get("comment", "")
 
-    langfuse_client.score(
+    langfuse_client.create_score(
         trace_id=trace_id,
         name=criterion_name,
         value=float(overall) / 5.0,

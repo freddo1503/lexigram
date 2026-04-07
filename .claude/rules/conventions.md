@@ -15,13 +15,3 @@
 
 - Code and documentation in English
 - Agent prompts and legal content in French (`app/config/agents.yml`)
-
-## Justfile
-
-- All codebase commands must be defined as justfile recipes
-- Dev, CI, and AI agents all use `just <recipe>`
-- No inline scripts in CI pipelines
-
-## Dependencies
-
-- Use latest/unpinned versions — do not pin to specific version tags unless explicitly requested

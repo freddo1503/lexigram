@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from pylegifrance.fonds.loda import Loda
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.agents.crew import create_crew
 from app.config import get_api_client, settings
@@ -12,7 +13,6 @@ from app.errors.exceptions import (
     LegifranceError,
     PublishingError,
 )
-from app.errors.handlers import retry
 from app.services.dynamo_utils import DynamoDBClient
 from app.services.publisher import Publisher
 
@@ -32,7 +32,7 @@ class LawProcessingService:
         Returns:
             dict: Law information with textId and date, or None if no unprocessed laws
         """
-        return self.dynamo_client.get_last_unprocessed_law()
+        return self.dynamo_client.get_oldest_unprocessed_law()
 
     def fetch_law_details(self, text_id: str):
         """
@@ -51,7 +51,7 @@ class LawProcessingService:
                     "Legifrance returned no data",
                     details={"law_id": text_id},
                 )
-            logger.info(f"Successfully fetched law details: {law_details.titre}")
+            logger.info("Successfully fetched law details: %s", law_details.titre)
             return law_details
         except Exception as e:
             raise LegifranceError(
@@ -60,7 +60,9 @@ class LawProcessingService:
                 details={"law_id": text_id},
             ) from e
 
-    @retry(max_attempts=2)
+    @retry(
+        stop=stop_after_attempt(2), wait=wait_exponential(min=1, max=60), reraise=True
+    )
     def process_and_publish_law(self, law_info: Dict[str, Any], law_details) -> bool:
         """
         Process law details with crew and publish to Instagram.
@@ -124,17 +126,25 @@ class LawProcessingService:
         try:
             logger.info("Processing law content...")
 
-            # Use PyLegifrance's built-in formatting
+            # Use PyLegifrance's built-in formatting (priority order)
+            content = None
             if hasattr(law_details, "format_modifications_report"):
-                clean_articles = law_details.format_modifications_report()
-            elif law_details.texte_brut:
-                clean_articles = law_details.texte_brut
-            else:
-                # Fallback to HTML content if other methods unavailable
-                clean_articles = law_details.texte_html or ""
+                content = law_details.format_modifications_report()
+            if not content and law_details.texte_brut:
+                content = law_details.texte_brut
+            if not content:
+                content = law_details.texte_html or ""
 
-            return clean_articles
+            if not content or not content.strip():
+                raise DataParsingError(
+                    "Law contains no processable content",
+                    details={"law_id": law_info["textId"]},
+                )
 
+            return content
+
+        except DataParsingError:
+            raise
         except Exception as e:
             raise DataParsingError(
                 "Error cleaning and formatting law content",

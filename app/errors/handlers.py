@@ -6,11 +6,10 @@ for transient errors and error classification helpers.
 """
 
 import logging
-import time
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, Dict
 
 import requests
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.errors.exceptions import (
     APIError,
@@ -28,24 +27,11 @@ from app.errors.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-# Type variables for better type hinting
-T = TypeVar("T")
-F = TypeVar("F", bound=Callable[..., Any])
-
 
 def classify_http_error(response: requests.Response, api_name: str = "API") -> APIError:
-    """
-    Classify an HTTP error based on the response status code.
-
-    Args:
-        response: The HTTP response object.
-        api_name: The name of the API for error messages.
-
-    Returns:
-        An appropriate APIError subclass instance.
-    """
+    """Classify an HTTP error based on the response status code."""
     status_code: int = response.status_code  # ty: ignore[invalid-assignment]
-    error_message = f"{api_name} request failed with status code {status_code}"
+    error_message = "%s request failed with status code %s" % (api_name, status_code)
 
     try:
         error_details = response.json()
@@ -91,96 +77,17 @@ def classify_http_error(response: requests.Response, api_name: str = "API") -> A
         return APIError(f"{error_message}: Unknown error", details=details)
 
 
-def retry(
-    max_attempts: int = 3,
-    retry_delay: float = 1.0,
-    backoff_factor: float = 2.0,
-    max_delay: float = 60.0,
-    retryable_exceptions: Optional[List[Type[Exception]]] = None,
-    retryable_status_codes: Optional[List[int]] = None,
-) -> Callable[[F], F]:
-    """
-    Decorator that retries a function call on specified exceptions with exponential backoff.
-
-    Args:
-        max_attempts: Maximum number of retry attempts.
-        retry_delay: Initial delay between retries in seconds.
-        backoff_factor: Factor by which the delay increases with each retry.
-        max_delay: Maximum delay between retries in seconds.
-        retryable_exceptions: List of exception types that should trigger a retry.
-        retryable_status_codes: List of HTTP status codes that should trigger a retry.
-
-    Returns:
-        The decorated function.
-    """
-    if retryable_exceptions is None:
-        retryable_exceptions = [
-            NetworkError,
-            TimeoutError,
-            ServerError,
-            RateLimitError,
-            requests.ConnectionError,
-            requests.Timeout,
-            requests.HTTPError,
-        ]
-
-    if retryable_status_codes is None:
-        retryable_status_codes = [408, 429, 500, 502, 503, 504]
-
-    def decorator(func: F) -> F:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            last_exception = None
-            current_delay = retry_delay
-
-            for attempt in range(1, max_attempts + 1):
-                try:
-                    return func(*args, **kwargs)
-                except tuple(retryable_exceptions) as e:
-                    last_exception = e
-
-                    # Check if it's a rate limit error with a specific retry time
-                    if isinstance(e, RateLimitError) and e.retry_after is not None:
-                        current_delay = e.retry_after
-
-                    # Check if it's an HTTP error with a retryable status code
-                    if isinstance(e, requests.HTTPError):
-                        response = getattr(e, "response", None)
-                        if (
-                            response
-                            and response.status_code not in retryable_status_codes
-                        ):
-                            raise
-
-                        # Check for Retry-After header
-                        retry_after = (
-                            response.headers.get("Retry-After") if response else None
-                        )
-                        if retry_after and retry_after.isdigit():
-                            current_delay = int(retry_after)
-
-                    # Log the error and retry information
-                    if attempt < max_attempts:
-                        logger.warning(
-                            f"Attempt {attempt}/{max_attempts} failed with error: {e}. "
-                            f"Retrying in {current_delay:.2f} seconds..."
-                        )
-                        time.sleep(current_delay)
-                        current_delay = min(current_delay * backoff_factor, max_delay)
-                    else:
-                        logger.error(
-                            f"All {max_attempts} attempts failed. Last error: {e}"
-                        )
-                        raise
-
-            # This should never be reached, but just in case
-            if last_exception:
-                raise last_exception
-            return None  # To satisfy the type checker
-
-        return cast(F, wrapper)
-
-    return decorator
+# Re-export tenacity's retry with project defaults for convenience.
+# Usage: @retry(stop=stop_after_attempt(3))
+# The raw tenacity decorators are re-exported so callers don't need to import tenacity directly.
+__all__ = [
+    "classify_http_error",
+    "retry",
+    "stop_after_attempt",
+    "wait_exponential",
+    "safe_request",
+    "safe_parse_json",
+]
 
 
 def safe_request(
@@ -190,24 +97,13 @@ def safe_request(
     max_attempts: int = 3,
     **kwargs: Any,
 ) -> requests.Response:
-    """
-    Make a safe HTTP request with retries and proper error handling.
+    """Make a safe HTTP request with retries and proper error handling."""
 
-    Args:
-        method: HTTP method (GET, POST, etc.).
-        url: URL to request.
-        api_name: Name of the API for error messages.
-        max_attempts: Maximum number of retry attempts.
-        **kwargs: Additional arguments to pass to requests.request.
-
-    Returns:
-        The HTTP response.
-
-    Raises:
-        APIError: If the request fails after all retry attempts.
-    """
-
-    @retry(max_attempts=max_attempts)
+    @retry(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_exponential(min=1, max=60),
+        reraise=True,
+    )
     def _make_request() -> requests.Response:
         try:
             response = requests.request(method, url, **kwargs)
@@ -217,22 +113,22 @@ def safe_request(
             raise classify_http_error(e.response, api_name)
         except requests.ConnectionError as e:
             raise NetworkError(
-                f"Connection error while connecting to {api_name}: {e}",
+                "Connection error while connecting to %s: %s" % (api_name, e),
                 original_exception=e,
             )
         except requests.Timeout as e:
             raise TimeoutError(
-                f"Timeout while connecting to {api_name}: {e}",
+                "Timeout while connecting to %s: %s" % (api_name, e),
                 original_exception=e,
             )
         except requests.RequestException as e:
             raise APIError(
-                f"Error while connecting to {api_name}: {e}",
+                "Error while connecting to %s: %s" % (api_name, e),
                 original_exception=e,
             )
         except Exception as e:
             raise LexigramError(
-                f"Unexpected error while connecting to {api_name}: {e}",
+                "Unexpected error while connecting to %s: %s" % (api_name, e),
                 original_exception=e,
             )
 

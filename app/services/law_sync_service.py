@@ -30,7 +30,7 @@ class LawSyncService:
         if year is None:
             year = datetime.now().year
 
-        logger.info(f"Synchronizing laws for year {year}...")
+        logger.info("Synchronizing laws for year %d...", year)
 
         all_laws = []
         page_number = 1
@@ -60,8 +60,8 @@ class LawSyncService:
         # Sync laws to DynamoDB
         if all_laws:
             result = self.dynamo_client.sync_new_entries_to_dynamodb(all_laws)
-            logger.info(f"Synchronization complete for {year}. {result}")
+            logger.info("Synchronization complete for %d. %s", year, result)
             return len(all_laws)
         else:
-            logger.info(f"No laws found for year {year}")
+            logger.info("No laws found for year %d", year)
             return 0

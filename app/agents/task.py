@@ -8,8 +8,7 @@ Each task is responsible for a specific part of the legal text processing pipeli
 - caption: Converts legal analysis into an Instagram-friendly post
 """
 
-import re
-from typing import Tuple, cast
+from typing import Any, Tuple, cast
 
 from crewai import Task
 from crewai.lite_agent import LiteAgentOutput
@@ -17,6 +16,7 @@ from crewai.tasks.task_output import TaskOutput
 
 from app.config import agents_config
 from app.models.lex_pictor import ImagePayload
+from app.text_utils import EMOJI_PATTERN
 
 task_config = agents_config["tasks"]["text_summary"]
 image_task_config = agents_config["tasks"]["image_generation"]
@@ -47,14 +47,14 @@ text_summary = Task(
     expected_output=agents_config["tasks"]["text_summary"]["expected_output"],
     agent=None,
     guardrail=validate_text_summary,
-    max_retries=2,
+    guardrail_max_retries=3,
     human_input=False,
 )
 
 
 def validate_image_payload(
     output: TaskOutput | LiteAgentOutput,
-) -> Tuple[bool, TaskOutput | LiteAgentOutput | str]:
+) -> Tuple[bool, Any]:
     if not output.pydantic:
         return False, "L'output n'est pas au format attendu (ImagePayload)"
     payload = cast(ImagePayload, output.pydantic)
@@ -73,7 +73,7 @@ image_generation = Task(
     agent=None,
     output_pydantic=ImagePayload,
     guardrail=validate_image_payload,
-    max_retries=2,
+    guardrail_max_retries=3,
 )
 
 
@@ -117,24 +117,7 @@ def validate_caption(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
         )
 
     # Check for emojis (should have at least one)
-    # Simple emoji check - this is not comprehensive but catches common emoji patterns
-    emoji_pattern = re.compile(
-        "["
-        "\U0001f600-\U0001f64f"  # emoticons
-        "\U0001f300-\U0001f5ff"  # symbols & pictographs
-        "\U0001f680-\U0001f6ff"  # transport & map symbols
-        "\U0001f700-\U0001f77f"  # alchemical symbols
-        "\U0001f780-\U0001f7ff"  # Geometric Shapes
-        "\U0001f800-\U0001f8ff"  # Supplemental Arrows-C
-        "\U0001f900-\U0001f9ff"  # Supplemental Symbols and Pictographs
-        "\U0001fa00-\U0001fa6f"  # Chess Symbols
-        "\U0001fa70-\U0001faff"  # Symbols and Pictographs Extended-A
-        "\U00002702-\U000027b0"  # Dingbats
-        "\U000024c2-\U0001f251"
-        "]+",
-        flags=re.UNICODE,
-    )
-    if not emoji_pattern.search(text):
+    if not EMOJI_PATTERN.search(text):
         return (
             False,
             "La légende doit contenir au moins un emoji pour améliorer l'engagement.",
@@ -158,5 +141,5 @@ caption = Task(
     agent=None,
     async_execution=False,
     guardrail=validate_caption,
-    max_retries=2,
+    guardrail_max_retries=3,
 )

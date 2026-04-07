@@ -45,7 +45,7 @@ Table construct in `infra/dynamo_db_table.py`.
 
 |`sync_new_law_to_dynamodb(text_loda)` |Add new law if not already exists (idempotent)
 |`sync_new_entries_to_dynamodb(text_lodas)` |Batch sync with summary string return
-|`get_last_unprocessed_law()` |Scan for `isProcessed=false`, sort by date, return oldest
+|`get_oldest_unprocessed_law()` |Scan for `isProcessed=false`, sort by date, return oldest
 |===
 
 == Error Handling

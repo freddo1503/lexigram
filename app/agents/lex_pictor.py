@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Type
 
@@ -65,9 +66,14 @@ class MistralImageTool(BaseTool):
             ContentType="image/png",
         )
 
-        image_url = (
-            f"https://{settings.s3_bucket_name}.s3.eu-west-3.amazonaws.com/{s3_key}"
-        )
+        # Construct public URL (supports both AWS S3 and S3-compatible endpoints)
+        s3_endpoint = os.environ.get("AWS_ENDPOINT_URL_S3")
+        if s3_endpoint:
+            image_url = f"{s3_endpoint}/{settings.s3_bucket_name}/{s3_key}"
+        else:
+            image_url = (
+                f"https://{settings.s3_bucket_name}.s3.eu-west-3.amazonaws.com/{s3_key}"
+            )
 
         return ImagePayload(
             image_url=image_url,

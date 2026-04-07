@@ -1,5 +1,12 @@
 # Code Style
 
+## Principles
+
+- **KISS**: Keep It Simple — simplicity over complexity
+- **DRY**: Don't Repeat Yourself — code reuse first
+- **YAGNI**: You Aren't Gonna Need It — only build what is needed now
+- **Maintainability**: write code that is easy to read, understand, and modify
+
 ## Linting & Formatting
 
 - **Ruff** for linting and formatting (line-length 88, double quotes, space indent)
@@ -12,8 +19,3 @@
 - **Lefthook** manages pre-commit hooks (replaces pre-commit)
 - Hooks run `just lint-fix` and `just format` on staged `.py` files
 - Install hooks with `just setup-hooks`
-
-## Configuration
-
-- Ruff config in `pyproject.toml` under `[tool.ruff]`
-- ty config in `pyproject.toml` under `[tool.ty]`

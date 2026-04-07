@@ -72,7 +72,7 @@ langfuse-down:
 
 # Run evaluation pipeline (hits real APIs, no mocks)
 eval:
-    uv run --group eval pytest tests/eval/ -v --timeout=600 -s
+    uv run --group eval pytest tests/eval/ -v -s -o "timeout=600" -o "addopts="
 
 # Install git hooks via lefthook
 setup-hooks:
