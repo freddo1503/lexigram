@@ -20,7 +20,6 @@ from app.models.publisher import (
     PublishResponse,
     StatusResponse,
 )
-from app.services.instagram_auth import InstagramTokenManager
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ class Publisher:
         self.api_version = api_version
         self.instagram_graph_url = f"https://graph.instagram.com/{api_version}"
         self.ig_user_id: Optional[str] = None
-        self.token_manager: Optional[InstagramTokenManager] = None
 
         # Get or create access token if we have app credentials
         if settings.instagram_app_id and settings.instagram_app_secret:

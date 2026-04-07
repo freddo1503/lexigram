@@ -247,22 +247,6 @@ class InstagramTokenManager:
             "Unable to obtain a valid Instagram access token through any method"
         )
 
-    @classmethod
-    def from_config(
-        cls, app_id: str, app_secret: str, current_token: str
-    ) -> "InstagramTokenManager":
-        """
-        Create an InstagramTokenManager from configuration.
-
-        Args:
-            app_id: Facebook App ID
-            app_secret: Facebook App Secret
-            current_token: Current Instagram access token
-
-        Returns:
-            InstagramTokenManager: Configured token manager
-        """
-        return cls(app_id=app_id, app_secret=app_secret, current_token=current_token)
 
 
 class SystemUserTokenGenerator:
