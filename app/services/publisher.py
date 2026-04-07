@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from app.config import settings
 from app.errors.exceptions import (
     AuthenticationError,
     DataParsingError,
@@ -25,41 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class Publisher:
-    def __init__(self, access_token: Optional[str] = None, api_version: str = "v23.0"):
+    def __init__(self, access_token: str, api_version: str = "v23.0"):
         self.api_version = api_version
         self.instagram_graph_url = f"https://graph.instagram.com/{api_version}"
         self.ig_user_id: Optional[str] = None
-
-        # Get or create access token if we have app credentials
-        if settings.instagram_app_id and settings.instagram_app_secret:
-            from app.services.instagram_auth import get_refreshed_instagram_token
-
-            try:
-                self.access_token = get_refreshed_instagram_token(
-                    app_id=settings.instagram_app_id,
-                    app_secret=settings.instagram_app_secret,
-                    current_token=access_token,
-                )
-                logger.info("Instagram token obtained/validated successfully")
-            except Exception as e:
-                logger.error("Failed to obtain Instagram token: %s", e)
-                if access_token:
-                    logger.warning("Falling back to provided access token")
-                    self.access_token = access_token
-                else:
-                    raise Exception(
-                        "No valid Instagram token available. "
-                        "Ensure app credentials are correct and Business Manager is set up."
-                    )
-        elif access_token:
-            self.access_token = access_token
-            logger.info("Using provided access token")
-        else:
-            raise Exception(
-                "No Instagram credentials available. "
-                "Provide either access_token or set INSTAGRAM_APP_ID/INSTAGRAM_APP_SECRET"
-            )
-
+        self.access_token = access_token
         self._get_instagram_user_id()
 
     def _instagram_api_call(

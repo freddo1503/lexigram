@@ -1,6 +1,6 @@
 import logging
 
-from app.config import settings
+from app.config import settings, settings_manager
 from app.errors.exceptions import (
     DynamoDBError,
     LexigramError,
@@ -33,6 +33,9 @@ def main():
         if not settings.dynamo_table_name:
             raise LexigramError("DynamoDB table name is not configured")
         dynamo_client = DynamoDBClient(settings.dynamo_table_name)
+
+        # Refresh Instagram token before initializing services
+        settings_manager.refresh_instagram_token()
 
         # Initialize services
         law_sync_service = LawSyncService(dynamo_client)

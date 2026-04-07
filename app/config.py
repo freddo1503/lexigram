@@ -134,6 +134,33 @@ class SettingsManager:
                     elif field_name == "legifrance_client_secret":
                         os.environ["LEGIFRANCE_CLIENT_SECRET"] = secret_value
 
+    def refresh_instagram_token(self) -> None:
+        """Refresh Instagram token if app credentials are available.
+
+        Must be called explicitly (e.g. from main()) — NOT at import time —
+        to avoid import-time network side effects.
+        """
+        s = self._settings
+        if not (
+            s.instagram_app_id and s.instagram_app_secret and s.instagram_access_token
+        ):
+            return
+
+        from app.services.instagram_auth import get_refreshed_instagram_token
+
+        try:
+            refreshed = get_refreshed_instagram_token(
+                app_id=s.instagram_app_id,
+                app_secret=s.instagram_app_secret,
+                current_token=s.instagram_access_token,
+            )
+            s.instagram_access_token = refreshed
+            logger.info("Instagram token validated/refreshed successfully")
+        except Exception as e:
+            logger.warning(
+                "Instagram token refresh failed, using existing token: %s", e
+            )
+
     @property
     def settings(self) -> LexigramSettings:
         """Get the current settings instance."""
