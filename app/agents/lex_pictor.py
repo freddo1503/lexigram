@@ -1,3 +1,4 @@
+import io
 import os
 import uuid
 from typing import Type
@@ -6,6 +7,7 @@ import boto3
 from crewai import LLM, Agent
 from crewai.tools import BaseTool
 from mistralai import Mistral
+from PIL import Image
 from pydantic import BaseModel
 
 from app.config import agents_config, settings
@@ -63,17 +65,21 @@ class MistralImageTool(BaseTool):
         if not file_id:
             return "Image generation returned no file."
 
-        # Download the generated image
+        # Download the generated image and convert to JPEG
         file_bytes = client.files.download(file_id=file_id).read()
+        image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+        jpeg_buffer = io.BytesIO()
+        image.save(jpeg_buffer, "JPEG", quality=95)
+        jpeg_bytes = jpeg_buffer.getvalue()
 
         # Upload to S3
-        s3_key = f"images/{uuid.uuid4()}.png"
+        s3_key = f"images/{uuid.uuid4()}.jpg"
         s3_client = boto3.client("s3")
         s3_client.put_object(
             Bucket=settings.s3_bucket_name,
             Key=s3_key,
-            Body=file_bytes,
-            ContentType="image/png",
+            Body=jpeg_bytes,
+            ContentType="image/jpeg",
         )
 
         # Construct public URL (supports both AWS S3 and S3-compatible endpoints)
