@@ -5,7 +5,7 @@ AI-powered multi-agent system that summarizes French legislation and publishes d
 ## Tech Stack
 
 - **Python 3.12** with **uv** package manager
-- **CrewAI** for multi-agent orchestration (Mistral AI for text, DALL-E for images)
+- **CrewAI** for multi-agent orchestration (Mistral AI for all agents — text + images)
 - **AWS Lambda** (Docker-based, eu-west-3), **DynamoDB**, **EventBridge** (weekdays 11:30 UTC)
 - **AWS CDK** for infrastructure (`infra/`)
 - **Légifrance API** via `pylegifrance` for official French law data

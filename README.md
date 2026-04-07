@@ -14,7 +14,7 @@ Lexigram utilise l'intelligence artificielle pour générer et publier automatiq
 
 - **Récupération automatique** des textes législatifs en France à partir de l'API publique officielle de Légifrance 🗂️
 - **Résumé automatique** clair et concis des textes légaux via l'utilisation de **Mistral AI** 📑
-- **Illustrations uniques et contextuelles générées automatiquement par DALL·E 🖼️**
+- **Illustrations uniques et contextuelles générées automatiquement par Mistral AI 🖼️**
 - **Publication quotidienne automatisée sur Instagram** 📅
 
 ---
@@ -22,7 +22,7 @@ Lexigram utilise l'intelligence artificielle pour générer et publier automatiq
 ## 🚀 Technologies Utilisées:
 
 - **Python 3.12+**
-- **DALL·E APIs & Mistral AI**
+- **Mistral AI** (text + image generation)
 - **Instagram API**
 - **Légifrance API officielle**
 - **Antora & AsciiDoc** (pour la documentation)

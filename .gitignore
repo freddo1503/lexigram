@@ -10,3 +10,4 @@ __pycache__/
 node_modules/
 build/
 docker-compose.override.yml
+.claude/plans/
