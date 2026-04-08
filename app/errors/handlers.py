@@ -7,6 +7,7 @@ for transient errors and error classification helpers.
 
 import logging
 from typing import Any, Dict
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -27,6 +28,20 @@ from app.errors.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+_SENSITIVE_PARAMS = {"access_token", "api_key", "secret", "token", "password", "key"}
+
+
+def _sanitize_url(url: str) -> str:
+    """Strip sensitive query parameters from a URL to prevent log leakage."""
+    parsed = urlparse(url)
+    if not parsed.query:
+        return url
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    sanitized = {
+        k: ["***"] if k.lower() in _SENSITIVE_PARAMS else v for k, v in params.items()
+    }
+    return urlunparse(parsed._replace(query=urlencode(sanitized, doseq=True)))
+
 
 def classify_http_error(response: requests.Response, api_name: str = "API") -> APIError:
     """Classify an HTTP error based on the response status code."""
@@ -40,7 +55,7 @@ def classify_http_error(response: requests.Response, api_name: str = "API") -> A
 
     details = {
         "status_code": status_code,
-        "url": response.url,
+        "url": _sanitize_url(response.url),
         "method": response.request.method if response.request else "UNKNOWN",
         "error_details": error_details,
     }
