@@ -116,9 +116,22 @@ class SecretsManagerConstruct(Construct):
         self.secret_arn = None
 
         env_vars = dotenv_values(env_file_path)
-        secret_value = json.dumps(env_vars)
 
-        self.secret_arn = self.create_or_update_secret(secret_name, secret_value)
+        if env_vars:
+            secret_value = json.dumps(env_vars)
+            self.secret_arn = self.create_or_update_secret(secret_name, secret_value)
+        else:
+            print(f"No .env file or empty — skipping secret update for '{secret_name}'")
+            self.secret_arn = self.get_secret_arn(secret_name)
+
+    def get_secret_arn(self, secret_name: str) -> str | None:
+        """Look up the ARN of an existing secret without modifying it."""
+        client = boto3.client("secretsmanager")
+        try:
+            response = client.describe_secret(SecretId=secret_name)
+            return response["ARN"]
+        except Exception:
+            return None
 
     def create_or_update_secret(
         self, secret_name: str, secret_value: str

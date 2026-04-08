@@ -28,18 +28,16 @@ def test_mistral_image_tool_success():
     # Define a valid image description
     valid_input = {"image_description": "A futuristic cityscape at sunset"}
 
-    # Run the tool
+    # Run the tool — returns JSON string
     result = tool._run(**valid_input)
     assert result, "The result should not be empty."
 
-    # Verify the result is an ImagePayload object
-    assert isinstance(result, ImagePayload), (
-        "The result should be an ImagePayload object."
+    # Parse and validate the ImagePayload
+    payload = ImagePayload.model_validate_json(result)
+    assert payload.image_url, "The result should contain a non-empty image_url."
+    assert payload.image_url.startswith("https://"), (
+        "The image_url should be an S3 URL."
     )
-
-    # Validate the ImagePayload properties
-    assert result.image_url, "The result should contain a non-empty image_url."
-    assert result.image_url.startswith("https://"), "The image_url should be an S3 URL."
-    assert result.image_description, (
+    assert payload.image_description, (
         "The result should contain a non-empty image_description."
     )
