@@ -21,6 +21,7 @@ dotenv.load_dotenv()
 
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 os.environ.setdefault("CREWAI_STORAGE_DIR", "/tmp")
+os.environ.setdefault("HOME", "/tmp")
 
 logger = logging.getLogger(__name__)
 
