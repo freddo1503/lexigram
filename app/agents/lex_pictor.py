@@ -39,7 +39,7 @@ class MistralImageTool(BaseTool):
 
         # Create an agent with image generation tool
         agent = client.beta.agents.create(
-            model="mistral-medium-latest",
+            model=settings.mistral_image_model,
             name="Lexigram Image Generator",
             tools=[{"type": "image_generation"}],
         )
@@ -87,9 +87,7 @@ class MistralImageTool(BaseTool):
         if s3_endpoint:
             image_url = f"{s3_endpoint}/{settings.s3_bucket_name}/{s3_key}"
         else:
-            image_url = (
-                f"https://{settings.s3_bucket_name}.s3.eu-west-3.amazonaws.com/{s3_key}"
-            )
+            image_url = f"https://{settings.s3_bucket_name}.s3.{settings.aws_region}.amazonaws.com/{s3_key}"
 
         return ImagePayload(
             image_url=image_url,
@@ -110,7 +108,7 @@ class LexPictor(Agent):
             goal=agent_config["goal"],
             backstory=agent_config["backstory"],
             llm=LLM(
-                model="mistral/mistral-large-latest",
+                model=settings.default_llm_model,
                 api_key=settings.mistral_api_key,
             ),
             tools=[MistralImageTool()],

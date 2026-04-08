@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Publisher:
-    def __init__(self, access_token: str, api_version: str = "v23.0"):
+    def __init__(self, access_token: str, api_version: str):
         self.api_version = api_version
         self.instagram_graph_url = f"https://graph.instagram.com/{api_version}"
         self._ig_user_id: Optional[str] = None

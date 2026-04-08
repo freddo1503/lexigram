@@ -19,6 +19,8 @@ jobs:
       LEGIFRANCE_CLIENT_SECRET: ${{ secrets.LEGIFRANCE_CLIENT_SECRET }}
       INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
       INSTAGRAM_APP_SECRET: ${{ secrets.INSTAGRAM_APP_SECRET }}
+      DYNAMO_TABLE_NAME: law_post_schema
+      S3_BUCKET_NAME: lexigram-generated-images
 
     steps:
       - name: Checkout Code

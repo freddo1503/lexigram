@@ -52,6 +52,8 @@ def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
     ):
         mock_settings.mistral_api_key = "test-key"
         mock_settings.s3_bucket_name = "test-bucket"
+        mock_settings.mistral_image_model = "mistral-medium-latest"
+        mock_settings.aws_region = "eu-west-3"
         # Mock PIL Image.open().convert().save() chain
         mock_img = MagicMock()
         mock_image.open.return_value.convert.return_value = mock_img
@@ -83,6 +85,7 @@ def test_mistral_image_tool_run_missing_description(mock_mistral):
 @patch("app.agents.lex_pictor.settings")
 def test_lex_pictor_initialization(mock_settings, mock_agents_config):
     mock_settings.mistral_api_key = "test_api_key"
+    mock_settings.default_llm_model = "mistral/mistral-large-latest"
 
     mock_agents_config.__getitem__.return_value = {
         "lex_pictor": {

@@ -1,41 +1,33 @@
-import os
+import json
 
-from app.config import get_all_secrets
+from app.config import AWS_SECRET_NAME
 
 
-def test_get_all_secrets_integration(secrets_manager_client):
-    secret_name = "my-env-secrets"
+def test_secrets_manager_connectivity(secrets_manager_client):
+    """Verify AWS Secrets Manager returns a non-empty secret."""
+    response = secrets_manager_client.get_secret_value(SecretId=AWS_SECRET_NAME)
+    secrets = json.loads(response["SecretString"])
 
-    secret = get_all_secrets(client=secrets_manager_client, secret_name=secret_name)
-
-    assert isinstance(secret, dict), "Expected secret to be a dictionary."
-    assert secret, (
-        "The secret dictionary returned is empty. Ensure that the secret exists in AWS Secrets Manager."
+    assert isinstance(secrets, dict), "Expected secret to be a dictionary."
+    assert secrets, (
+        "The secret dictionary is empty. "
+        "Ensure that the secret exists in AWS Secrets Manager."
     )
 
-    # Check if environment variables are set
-    for key, value in secret.items():
-        env_val = os.environ.get(key)
 
-        # Skip variables that don't exist in the environment
-        if env_val is None:
-            print(
-                f"Warning: Environment variable '{key}' is not set, but exists in AWS Secrets Manager with value '{value}'."
-            )
-            continue
+def test_settings_loads_secrets():
+    """Verify that LexigramSettings picks up values from env/secrets sources."""
+    from app.config import LexigramSettings
 
-        # In local development or CI environments, values might differ from AWS Secrets Manager
-        # Just log a warning instead of failing the test
-        if env_val != str(value):
-            print(
-                f"Warning: Environment variable '{key}' has value '{env_val}', but AWS Secrets Manager has '{value}'."
-            )
+    s = LexigramSettings()
+    assert isinstance(s.log_level, str)
 
-    cached_secret = get_all_secrets(
-        client=secrets_manager_client, secret_name=secret_name
-    )
-    assert cached_secret is secret, "Secrets caching not working as expected."
-
-    print(
-        "Integration test passed: Secrets and environment variables are set correctly."
-    )
+    # At least one secret-sourced field should be populated
+    secret_fields = [
+        s.legifrance_client_id,
+        s.legifrance_client_secret,
+        s.mistral_api_key,
+        s.instagram_access_token,
+    ]
+    loaded = [f for f in secret_fields if f is not None]
+    assert loaded, "No secrets loaded from any source (env, .env, or Secrets Manager)."

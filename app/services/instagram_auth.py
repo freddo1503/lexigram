@@ -6,6 +6,8 @@ import boto3
 import requests
 from botocore.exceptions import ClientError
 
+from app.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +54,7 @@ class InstagramTokenManager:
         """
         try:
             response = requests.get(
-                "https://graph.instagram.com/v23.0/me",
+                f"https://graph.instagram.com/{settings.instagram_api_version}/me",
                 params={"fields": "id", "access_token": self.current_token},
                 timeout=10,
             )
@@ -70,7 +72,7 @@ class InstagramTokenManager:
         """
         try:
             response = requests.get(
-                "https://graph.facebook.com/v23.0/oauth/access_token_info",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/oauth/access_token_info",
                 params={"access_token": self.current_token},
                 timeout=10,
             )
@@ -135,7 +137,7 @@ class InstagramTokenManager:
         """
         try:
             response = requests.get(
-                "https://graph.facebook.com/v23.0/oauth/access_token",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/oauth/access_token",
                 params={
                     "grant_type": "fb_exchange_token",
                     "client_id": self.app_id,
@@ -284,7 +286,7 @@ class SystemUserTokenGenerator:
         """
         try:
             response = requests.get(
-                "https://graph.facebook.com/v23.0/oauth/access_token",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/oauth/access_token",
                 params={
                     "client_id": self.app_id,
                     "client_secret": self.app_secret,
@@ -323,7 +325,7 @@ class SystemUserTokenGenerator:
         """
         try:
             response = requests.get(
-                f"https://graph.facebook.com/v23.0/{self.app_id}/businesses",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/{self.app_id}/businesses",
                 params={"access_token": app_token},
                 timeout=10,
             )
@@ -361,7 +363,7 @@ class SystemUserTokenGenerator:
         """
         try:
             response = requests.post(
-                f"https://graph.facebook.com/v23.0/{business_id}/system_users",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/{business_id}/system_users",
                 data={"name": name, "role": "ADMIN", "access_token": app_token},
                 timeout=10,
             )
@@ -400,7 +402,7 @@ class SystemUserTokenGenerator:
         try:
             # Generate token with Instagram permissions
             response = requests.post(
-                f"https://graph.facebook.com/v23.0/{system_user_id}/access_tokens",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/{system_user_id}/access_tokens",
                 data={
                     "business_app": self.app_id,
                     "scope": "instagram_business_basic,instagram_business_content_publish",
@@ -439,7 +441,7 @@ class SystemUserTokenGenerator:
         try:
             # First get pages
             response = requests.get(
-                "https://graph.facebook.com/v23.0/me/accounts",
+                f"https://graph.facebook.com/{settings.instagram_api_version}/me/accounts",
                 params={
                     "access_token": token,
                     "fields": "id,name,instagram_business_account",

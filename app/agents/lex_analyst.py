@@ -16,7 +16,7 @@ class AnalysteJuridique(Agent):
             goal=agent_config["goal"],
             backstory=agent_config["backstory"],
             llm=LLM(
-                model="mistral/mistral-large-latest",
+                model=settings.default_llm_model,
                 api_key=settings.mistral_api_key,
             ),
             verbose=True,

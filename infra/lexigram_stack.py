@@ -78,6 +78,9 @@ class Lexigram(aws_cdk.Stack):
         )
 
         lambda_function.add_environment("S3_BUCKET_NAME", image_bucket.bucket_name)
+        lambda_function.add_environment(
+            "DYNAMO_TABLE_NAME", law_posts_table.table.table_name
+        )
 
         law_posts_table.table.grant_read_write_data(lambda_function)
         image_bucket.grant_put(lambda_function)
