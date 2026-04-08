@@ -1,12 +1,26 @@
+import boto3
 import pytest
+from botocore.exceptions import ClientError
 
 from app.agents.lex_pictor import MistralImageTool
 from app.config import settings
 from app.models.lex_pictor import ImagePayload
 
 
+def _s3_bucket_exists() -> bool:
+    """Check if the configured S3 bucket exists and is accessible."""
+    if not settings.s3_bucket_name:
+        return False
+    try:
+        boto3.client("s3").head_bucket(Bucket=settings.s3_bucket_name)
+        return True
+    except (ClientError, Exception):
+        return False
+
+
 @pytest.mark.skipif(
-    not settings.mistral_api_key, reason="MISTRAL_API_KEY not configured"
+    not settings.mistral_api_key or not _s3_bucket_exists(),
+    reason="Requires MISTRAL_API_KEY and live S3 bucket",
 )
 def test_mistral_image_tool_success():
     tool = MistralImageTool()
