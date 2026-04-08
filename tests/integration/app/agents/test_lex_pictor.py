@@ -1,7 +1,13 @@
+import pytest
+
 from app.agents.lex_pictor import MistralImageTool
+from app.config import settings
 from app.models.lex_pictor import ImagePayload
 
 
+@pytest.mark.skipif(
+    not settings.mistral_api_key, reason="MISTRAL_API_KEY not configured"
+)
 def test_mistral_image_tool_success():
     tool = MistralImageTool()
 

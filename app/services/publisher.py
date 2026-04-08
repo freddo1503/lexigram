@@ -27,9 +27,15 @@ class Publisher:
     def __init__(self, access_token: str, api_version: str = "v23.0"):
         self.api_version = api_version
         self.instagram_graph_url = f"https://graph.instagram.com/{api_version}"
-        self.ig_user_id: Optional[str] = None
+        self._ig_user_id: Optional[str] = None
         self.access_token = access_token
-        self._get_instagram_user_id()
+
+    @property
+    def ig_user_id(self) -> Optional[str]:
+        """Lazily resolve and cache the Instagram User ID on first access."""
+        if self._ig_user_id is None:
+            self._get_instagram_user_id()
+        return self._ig_user_id
 
     def _instagram_api_call(
         self, method: str, url: str, operation: str, **kwargs: Any
@@ -67,16 +73,18 @@ class Publisher:
             )
 
             ig_user_response = safe_parse_json(response, api_name="Instagram")
-            self.ig_user_id = ig_user_response.get("id")
+            self._ig_user_id = ig_user_response.get("id")
 
-            if not self.ig_user_id:
+            if not self._ig_user_id:
                 raise AuthenticationError(
                     "Unable to retrieve Instagram User ID",
                     details={"response": ig_user_response},
                 )
 
-            logger.info("Successfully retrieved Instagram User ID: %s", self.ig_user_id)
-            return self.ig_user_id
+            logger.info(
+                "Successfully retrieved Instagram User ID: %s", self._ig_user_id
+            )
+            return self._ig_user_id
 
         except Exception as e:
             if not isinstance(e, (AuthenticationError, DataParsingError)):

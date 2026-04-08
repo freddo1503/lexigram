@@ -13,6 +13,7 @@ dependencies = [
     "constructs>=10.6.0",
     "crewai>=1.13.0",
     "dotenv>=0.9.9",
+    "litellm>=1.83.0",
     "mistralai>=1.9.11",
     "pillow>=12.2.0",
     "pydantic>=2.11.10",
@@ -38,7 +39,6 @@ dev = [
 eval = [
     "anthropic>=0.89.0",
     "langfuse>=4.0.6",
-    "litellm>=1.83.0",
     "openinference-instrumentation-crewai>=1.1.1",
     "pytest-timeout",
 ]

@@ -1129,6 +1129,7 @@ dependencies = [
     { name = "constructs" },
     { name = "crewai" },
     { name = "dotenv" },
+    { name = "litellm" },
     { name = "mistralai" },
     { name = "pillow" },
     { name = "pydantic" },
@@ -1149,7 +1150,6 @@ dev = [
 eval = [
     { name = "anthropic" },
     { name = "langfuse" },
-    { name = "litellm" },
     { name = "openinference-instrumentation-crewai" },
     { name = "pytest-timeout" },
 ]
@@ -1164,6 +1164,7 @@ requires-dist = [
     { name = "constructs", specifier = ">=10.6.0" },
     { name = "crewai", specifier = ">=1.13.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "litellm", specifier = ">=1.83.0" },
     { name = "mistralai", specifier = ">=1.9.11" },
     { name = "pillow", specifier = ">=12.2.0" },
     { name = "pydantic", specifier = ">=2.11.10" },
@@ -1184,7 +1185,6 @@ dev = [
 eval = [
     { name = "anthropic", specifier = ">=0.89.0" },
     { name = "langfuse", specifier = ">=4.0.6" },
-    { name = "litellm", specifier = ">=1.83.0" },
     { name = "openinference-instrumentation-crewai", specifier = ">=1.1.1" },
     { name = "pytest-timeout" },
 ]
