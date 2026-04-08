@@ -97,6 +97,8 @@ tasks:
       </instructions>
 
       <constraints>
+      - OBLIGATION : utilisez UNIQUEMENT l'outil "Mistral Image Tool" pour générer l'image.
+        Ne proposez JAMAIS d'URL provenant d'Unsplash, Pexels ou tout autre service externe.
       - Ne pas inclure : texte, mots, logos, drapeaux nationaux, visages réalistes
       </constraints>
 

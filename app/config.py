@@ -132,6 +132,8 @@ class LexigramSettings(BaseSettings):
             os.environ.setdefault(
                 "LEGIFRANCE_CLIENT_SECRET", self.legifrance_client_secret
             )
+        if self.mistral_api_key:
+            os.environ.setdefault("MISTRAL_API_KEY", self.mistral_api_key)
 
     @classmethod
     def settings_customise_sources(

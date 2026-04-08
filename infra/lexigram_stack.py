@@ -73,7 +73,7 @@ class Lexigram(aws_cdk.Stack):
             ),
             architecture=lambda_arch,
             log_retention=aws_logs.RetentionDays.ONE_MONTH,
-            timeout=aws_cdk.Duration.minutes(4),
+            timeout=aws_cdk.Duration.minutes(10),
             memory_size=512,
         )
 
