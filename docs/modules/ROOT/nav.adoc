@@ -18,3 +18,4 @@
 * xref:development-setup.adoc[Development Setup]
 * xref:french-law-domain.adoc[French Law Domain]
 * xref:prompt-engineering.adoc[Prompt Engineering]
+* xref:privacy-policy.adoc[Privacy Policy]

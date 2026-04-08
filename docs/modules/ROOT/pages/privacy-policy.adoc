@@ -1,0 +1,34 @@
+= Privacy Policy
+:page-layout: default
+
+Last updated: 2026-04-08
+
+== Overview
+
+Lexigram is an automated tool that summarizes French legislation and publishes daily posts to Instagram. This privacy policy explains how the application handles data.
+
+== Data Collected
+
+Lexigram processes the following data:
+
+* **Public French legislation** from the Legifrance API (publicly available government data)
+* **Instagram account identifiers** required for publishing content via the Instagram Graph API
+
+== Data Usage
+
+* Legislation data is processed to generate summaries and images, then published to Instagram
+* No personal user data is collected, stored, or shared
+* Instagram API tokens are stored securely in AWS Secrets Manager and used solely for publishing
+
+== Third-Party Services
+
+Lexigram integrates with:
+
+* **Legifrance API** -- French government legal database
+* **Mistral AI** -- text and image generation
+* **Instagram Graph API** -- content publishing
+* **AWS** -- infrastructure (Lambda, DynamoDB, S3, Secrets Manager)
+
+== Contact
+
+For questions about this privacy policy, open an issue at https://github.com/freddo1503/lexigram.
