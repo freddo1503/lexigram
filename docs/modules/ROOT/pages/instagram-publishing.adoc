@@ -28,11 +28,6 @@ Three-step process:
 
 Orchestrated by `publish(image_url, caption)` which calls all three in sequence.
 
-== Post-Publish
-
-`comment_on_post(media_id, message)` adds a comment to the published post.
-Used to add the Legifrance source URL.
-
 == Retry Strategy
 
 All API methods decorated with `@retry(max_attempts=3)`.

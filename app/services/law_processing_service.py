@@ -101,7 +101,7 @@ class LawProcessingService:
 
             # Step 3: Publish to Instagram
             published_id = self._publish_to_instagram(
-                image_generation, caption, law_details, law_info
+                image_generation, caption, law_info
             )
 
             # Step 4: Mark as processed
@@ -225,7 +225,7 @@ class LawProcessingService:
             raise
 
     def _publish_to_instagram(
-        self, image_generation, caption: str, law_details, law_info: Dict[str, Any]
+        self, image_generation, caption: str, law_info: Dict[str, Any]
     ) -> str:
         """Publish content to Instagram."""
         try:
@@ -234,21 +234,6 @@ class LawProcessingService:
                 image_url=image_generation.image_url, caption=caption
             )
             logger.info("Successfully published to Instagram with ID: %s", published_id)
-
-            # Add a comment with the Legifrance URL if available
-            if law_details.cid:
-                try:
-                    legifrance_url = (
-                        f"https://www.legifrance.gouv.fr/jorf/id/{law_details.cid}"
-                    )
-                    self.publisher.comment_on_post(published_id, legifrance_url)
-                    logger.info("Added Legifrance URL as comment: %s", legifrance_url)
-                except Exception as e:
-                    # Non-critical error, just log it
-                    logger.warning(
-                        "Failed to add Legifrance URL as comment: %s", str(e)
-                    )
-
             return published_id
 
         except Exception as e:

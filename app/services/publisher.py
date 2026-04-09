@@ -225,30 +225,3 @@ class Publisher:
         creation_id = self.create_media_object(image_url, caption)
         self.wait_for_media_processing(creation_id)
         return self.publish_post(creation_id)
-
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=60), reraise=True
-    )
-    def comment_on_post(self, media_id: str, message: str) -> str:
-        """Comment on an existing Instagram post."""
-        comment_url = f"{self.instagram_graph_url}/{media_id}/comments"
-        payload = {"message": message, "access_token": self.access_token}
-
-        logger.info("Posting comment on Instagram media ID: %s", media_id)
-
-        comment_data = self._instagram_api_call(
-            "POST",
-            comment_url,
-            "comment",
-            data=payload,
-        )
-        comment_id = comment_data.get("id")
-
-        if not comment_id:
-            raise DataParsingError(
-                "Failed to get comment ID from Instagram response",
-                details={"response": comment_data},
-            )
-
-        logger.info("Successfully posted comment with ID: %s", comment_id)
-        return comment_id
