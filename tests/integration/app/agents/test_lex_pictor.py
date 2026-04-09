@@ -1,6 +1,7 @@
 import boto3
 import pytest
 from botocore.exceptions import ClientError
+from mistralai.models.sdkerror import SDKError
 
 from app.agents.lex_pictor import MistralImageTool
 from app.config import settings
@@ -29,7 +30,12 @@ def test_mistral_image_tool_success():
     valid_input = {"image_description": "A futuristic cityscape at sunset"}
 
     # Run the tool — returns JSON string
-    result = tool._run(**valid_input)
+    try:
+        result = tool._run(**valid_input)
+    except SDKError as e:
+        if "429" in str(e) or "rate limit" in str(e).lower():
+            pytest.skip(f"Mistral image API rate limited: {e}")
+        raise
     assert result, "The result should not be empty."
 
     # Parse and validate the ImagePayload
