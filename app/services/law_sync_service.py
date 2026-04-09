@@ -37,7 +37,7 @@ class LawSyncService:
 
         while True:
             search_request = SearchRequest(
-                natures=["LOI"],
+                natures=["LOI", "DECRET", "ORDONNANCE"],
                 page_number=page_number,
                 page_size=10,
                 date_publication=DatePeriod(

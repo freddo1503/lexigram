@@ -71,7 +71,7 @@ class DynamoDBClient:
     def sync_new_law_to_dynamodb(self, text_loda) -> bool:
         """
         Syncs one TextLoda object to DynamoDB.
-        Stores textId (from text_loda.id), date (extracted from id), and isProcessed.
+        Stores textId, date, nature, and isProcessed.
 
         Args:
             text_loda: PyLegifrance TextLoda object
@@ -85,19 +85,28 @@ class DynamoDBClient:
             return False
 
         existing_item = self.get_item(key={"textId": law_id})
-        if not existing_item:
-            # Extract date from the TextLoda ID (format: LEGITEXT000051827204_02-07-2025)
-            date_part = None
-            if "_" in law_id:
-                date_part = law_id.split("_")[1]
-
-            item = {"textId": law_id, "date": date_part, "isProcessed": False}
-            self.put_item(item)
-            logger.debug("Added new law: %s", law_id)
-            return True
-        else:
+        if existing_item:
             logger.debug("Law already exists: %s", law_id)
             return False
+
+        # Extract date from the TextLoda ID (format: LEGITEXT000051827204_02-07-2025)
+        date_part = law_id.split("_")[1] if "_" in law_id else None
+
+        # The outer TexteLoda wrapper in pylegifrance/fonds/loda.py does not
+        # expose .nature directly; reach through to the inner pydantic model
+        # which publicly declares `nature` as a property.
+        # TODO: use text_loda.nature once pylegifrance exposes it on the wrapper.
+        nature = text_loda._texte.nature if text_loda._texte else None
+
+        item = {
+            "textId": law_id,
+            "date": date_part,
+            "isProcessed": False,
+            "nature": nature,
+        }
+        self.put_item(item)
+        logger.debug("Added new law: %s (%s)", law_id, nature)
+        return True
 
     def sync_new_entries_to_dynamodb(self, text_lodas: t.List) -> str:
         """
@@ -121,18 +130,19 @@ class DynamoDBClient:
 
     def get_oldest_unprocessed_law(self) -> t.Optional[t.Dict[str, t.Any]]:
         """
-        Retrieves the latest unprocessed law entry (`isProcessed=false`) from DynamoDB.
-        Returns a dictionary with `textId` and `date` of the law.
+        Retrieves the oldest unprocessed law entry (`isProcessed=false`) from DynamoDB.
+        Returns a dictionary with `textId`, `date`, and `nature` of the law.
         Example format:
-        {'date': '02-07-2025', 'textId': 'LEGITEXT000051827204_02-07-2025'}
+        {'date': '02-07-2025', 'textId': 'LEGITEXT000051827204_02-07-2025', 'nature': 'LOI'}
         """
         try:
             response = self.table.scan(
                 FilterExpression=Attr("isProcessed").eq(False),
-                ProjectionExpression="#textId, #date",
+                ProjectionExpression="#textId, #date, #nature",
                 ExpressionAttributeNames={
                     "#textId": "textId",
                     "#date": "date",
+                    "#nature": "nature",
                 },
             )
             items = response.get("Items", [])
@@ -148,6 +158,7 @@ class DynamoDBClient:
             result = {
                 "textId": oldest_unprocessed.get("textId"),
                 "date": oldest_unprocessed.get("date"),
+                "nature": oldest_unprocessed.get("nature"),
             }
             return result
         except ClientError as e:

@@ -14,11 +14,11 @@ def create_item(
 
 
 def test_sync_new_entries_to_dynamodb(api_client, dynamodb_client, dynamo_table):
-    # Create PyLegifrance LODA instance and search for laws
+    # Create PyLegifrance LODA instance and search across all three natures
     loda_api = Loda(api_client)
 
     search_request = SearchRequest(
-        natures=["LOI"],
+        natures=["LOI", "DECRET", "ORDONNANCE"],
         page_number=1,
         page_size=5,
     )
@@ -34,7 +34,8 @@ def test_sync_new_entries_to_dynamodb(api_client, dynamodb_client, dynamo_table)
         result = dynamodb_client.sync_new_entries_to_dynamodb(laws)
         print(f"Sync result: {result}")
 
-        # Verify laws were inserted into DynamoDB
+        # Verify laws were inserted into DynamoDB with nature field populated
+        valid_natures = {"LOI", "DECRET", "ORDONNANCE"}
         for law in laws:
             dynamo_response = dynamo_table.get_item(Key={"textId": law.id})
             assert "Item" in dynamo_response, (
@@ -42,6 +43,12 @@ def test_sync_new_entries_to_dynamodb(api_client, dynamodb_client, dynamo_table)
             )
             item = dynamo_response["Item"]
             assert item["textId"] == law.id
+            assert "nature" in item, (
+                f"Law {law.id} missing nature attribute in DynamoDB"
+            )
+            assert item["nature"] in valid_natures, (
+                f"Law {law.id} has unexpected nature: {item['nature']}"
+            )
     finally:
         # Cleanup
         for law in laws:
