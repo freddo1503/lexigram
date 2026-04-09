@@ -184,15 +184,18 @@ class LawProcessingService:
                 }
             )
 
-            # Parse the crew output
+            # Parse the crew output — the guardrail returns ImagePayload on success
             try:
-                image_generation = resume.tasks_output[1].pydantic
+                from app.models.lex_pictor import ImagePayload
+
+                image_raw = resume.tasks_output[1].raw
+                image_generation = ImagePayload.model_validate_json(image_raw)
                 caption = resume.tasks_output[2].raw
 
                 if not image_generation.image_url:
                     raise CrewError(
                         "Crew did not generate a valid image URL",
-                        details={"crew_output": resume.tasks_output[1].raw},
+                        details={"crew_output": image_raw},
                     )
 
                 return image_generation, caption

@@ -8,11 +8,12 @@ Each task is responsible for a specific part of the legal text processing pipeli
 - caption: Converts legal analysis into an Instagram-friendly post
 """
 
-from typing import Any, Tuple, cast
+from typing import Any, Tuple
 
 from crewai import Task
 from crewai.lite_agent import LiteAgentOutput
 from crewai.tasks.task_output import TaskOutput
+from pydantic import ValidationError
 
 from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
@@ -72,23 +73,23 @@ def _s3_image_exists(image_url: str) -> bool:
 def validate_image_payload(
     output: TaskOutput | LiteAgentOutput,
 ) -> Tuple[bool, Any]:
-    if not output.pydantic:
+    # With result_as_answer=True on MistralImageTool, the task's raw output
+    # is the tool's JSON return value. Parse it directly.
+    try:
+        payload = ImagePayload.model_validate_json(output.raw)
+    except ValidationError as e:
         return False, (
-            "L'output n'est pas au format attendu (ImagePayload). "
-            "Utilisez l'outil 'Mistral Image Tool' pour générer l'image."
-        )
-    payload = cast(ImagePayload, output.pydantic)
-    if not payload.image_url or not payload.image_description:
-        return False, (
-            "L'URL de l'image ou la description est vide. "
-            "Utilisez l'outil 'Mistral Image Tool' pour générer l'image."
+            f"L'output n'est pas un ImagePayload valide ({e}). "
+            "Vous DEVEZ appeler l'outil 'Mistral Image Tool' avec une description, "
+            "et retourner SON RÉSULTAT tel quel (sans le modifier)."
         )
     if not _s3_image_exists(payload.image_url):
         return False, (
-            "L'image n'existe pas dans S3. L'URL a été inventée. "
-            "Vous DEVEZ utiliser l'outil 'Mistral Image Tool' pour générer l'image."
+            "L'image n'existe pas dans S3 — l'URL a été inventée. "
+            "Vous DEVEZ appeler l'outil 'Mistral Image Tool' avec une description "
+            "et retourner son résultat sans modification."
         )
-    return True, output
+    return True, payload
 
 
 image_generation = Task(
@@ -97,7 +98,6 @@ image_generation = Task(
     expected_output='{"image_url": "https://<bucket>.s3.<region>.amazonaws.com/images/<uuid>.jpg", "image_description": "<description>"}',
     context=[text_summary],
     agent=None,
-    output_pydantic=ImagePayload,
     guardrail=validate_image_payload,
     guardrail_max_retries=3,
 )
