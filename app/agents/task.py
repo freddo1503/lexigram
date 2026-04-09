@@ -127,6 +127,29 @@ def validate_caption(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
             "La légende dépasse la limite de 2200 caractères d'Instagram. Veuillez la raccourcir.",
         )
 
+    # First line (hook) must be plain text and survive mobile truncation (~125 chars).
+    # We allow up to 150 to leave headroom for French words.
+    first_line = text.split("\n", 1)[0].strip()
+    if EMOJI_PATTERN.search(first_line):
+        return (
+            False,
+            "La première ligne (accroche) ne doit contenir aucun emoji. Réservez les émojis aux marqueurs de section.",
+        )
+    if len(first_line) > 150:
+        return (
+            False,
+            "La première ligne (accroche) dépasse 150 caractères. Elle doit fonctionner seule avant la troncature « ... plus ».",
+        )
+
+    # Enforce section separation via blank lines. The target template has
+    # 5 section breaks + 1 blank line before the hashtag block = 6 blank lines;
+    # 4 is a safe floor that tolerates minor drift.
+    if text.count("\n\n") < 4:
+        return (
+            False,
+            "La légende doit être structurée en sections séparées par des lignes vides (double saut de ligne).",
+        )
+
     # Check for hashtags (should have at least 5)
     hashtags = [word for word in text.split() if word.startswith("#")]
     if len(hashtags) < 5:
@@ -147,6 +170,14 @@ def validate_caption(output: TaskOutput | LiteAgentOutput) -> Tuple[bool, str]:
         return (
             False,
             "La légende doit contenir au moins un emoji pour améliorer l'engagement.",
+        )
+
+    # Soft ceiling on emojis: 3-6 is optimal, 8 is the hard max to discourage spam.
+    emoji_count = sum(len(match) for match in EMOJI_PATTERN.findall(text))
+    if emoji_count > 8:
+        return (
+            False,
+            "La légende contient trop d'emojis. Limitez-vous à 8 maximum (3 à 6 recommandé).",
         )
 
     # Strip markdown formatting characters — LLMs produce these despite instructions,

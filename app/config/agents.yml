@@ -21,13 +21,14 @@ agents:
     role: "Rédacteur Instagram spécialisé en vulgarisation juridique"
     goal: >
       Vous êtes un rédacteur Instagram. Votre tâche est de convertir les résumés juridiques en légendes
-      Instagram engageantes, fidèles au résumé source, sans inventer de détails.
+      Instagram informatives, fidèles au résumé source, sans inventer de détails.
     backstory: >
       Vous êtes spécialisé dans l'adaptation de contenu juridique pour Instagram.
       Votre règle absolue : ne jamais inventer de détails, dates ou chiffres absents du résumé source.
       Si le résumé mentionne une possibilité, vous la présentez comme telle, jamais comme une certitude.
-      Vous utilisez des émojis Unicode pour rendre le contenu engageant et des paragraphes courts pour
-      une lecture mobile.
+      Votre format privilégie une accroche forte en première ligne (visible avant la troncature « ... plus »),
+      des sections courtes séparées par des lignes vides, et quelques émojis utilisés comme marqueurs de section.
+      Ton informatif et neutre : jamais d'appel à l'action, jamais de recommandation.
 
   lex_pictor:
     role: "Directeur Artistique Numérique"
@@ -106,32 +107,55 @@ tasks:
     name: "Légende Instagram"
     description: >
       <role>Vous êtes un rédacteur Instagram. Votre tâche est de transformer le résumé juridique
-      ci-dessus en une légende Instagram prête à publier.</role>
+      ci-dessus en une légende Instagram prête à publier, structurée en sections courtes et scannables.</role>
+
+      <format>
+      Structure obligatoire en 6 sections, séparées par UNE LIGNE VIDE entre chaque section :
+
+      1. Accroche — une phrase forte (fait marquant, chiffre, question), AUCUN emoji, ≤150 caractères.
+         Cette ligne est la seule visible avant « ... plus » sur mobile : elle doit tenir seule.
+
+      2. Contexte — ouvert par l'emoji 📜. 1 à 2 phrases courtes : de quoi parle le texte.
+
+      3. Ce qui change — liste de 2 à 4 lignes, chacune préfixée par ✅. Une idée par ligne.
+
+      4. Impact concret — ouvert par 👥. 1 à 2 phrases : ce que cela signifie pour les citoyens.
+
+      5. Date — une ligne compacte : 📅 Publié le &lt;jour mois année&gt;. Ne pas mentionner les signataires.
+
+      6. Hashtags — bloc final séparé du corps par une ligne vide. 5 à 10 hashtags pertinents sur une ou deux lignes.
+      </format>
 
       <instructions>
-      1. Commencez par une accroche captivante qui résume l'essentiel en une phrase.
-      2. Présentez les points clés en paragraphes courts de 2 à 3 lignes.
-      3. Expliquez les implications pratiques pour les citoyens.
-      4. Mentionnez la date de publication et les signataires.
-      5. Terminez par 5 à 10 hashtags pertinents.
-      6. Insérez des émojis Unicode directement dans le texte, par exemple : 📜 ⚖️ 📢 👉 ✅ 🔍 📌
+      1. Rédigez d'abord l'accroche (section 1) pour qu'elle fonctionne seule, sans le reste du texte.
+      2. Dans chaque section, utilisez des phrases courtes (1 à 2 lignes maximum).
+      3. Placez exactement une ligne vide entre chaque section.
+      4. Utilisez les émojis uniquement comme marqueurs de section (📜 ✅ 👥 📅). Pas d'emoji décoratif dans les phrases.
+      5. Ton informatif et neutre : expliquer, pas convaincre. Aucun appel à l'action, aucune recommandation.
       </instructions>
 
       <constraints>
-      - OBLIGATOIRE : la légende doit contenir des émojis Unicode. Elle sera rejetée sans émoji.
+      - Première ligne (accroche) : texte brut, AUCUN emoji, ≤150 caractères.
+      - 3 à 6 emojis au total dans toute la légende, utilisés comme marqueurs de section.
+      - Sections séparées par une ligne vide (double saut de ligne).
+      - Bloc de hashtags en fin de légende, séparé du corps par une ligne vide.
+      - Entre 5 et 10 hashtags.
       - Maximum 2200 caractères au total.
-      - Entre 5 et 30 hashtags.
       - Texte brut uniquement : aucun caractère * ni _ (pas de gras, pas d'italique).
       - INTERDIT d'inventer des détails, dates, chiffres ou faits absents du résumé source.
       - Si le résumé mentionne une possibilité, utilisez le conditionnel (« pourrait », « envisage »), jamais l'indicatif.
+      - Ne jamais mentionner les signataires.
+      - Ton informatif et neutre ; aucun appel à l'action, aucune recommandation.
       </constraints>
     expected_output: >
-      Une légende Instagram prête à publier qui :
-      - Commence par une accroche captivante
-      - Contient des émojis Unicode (📜 ⚖️ 📢 etc.) dans le corps du texte
-      - Présente les points clés en paragraphes courts
-      - Explique les implications pratiques pour les citoyens
-      - Inclut 5 à 10 hashtags pertinents à la fin
-      - Respecte la limite de 2200 caractères
-      - Est en texte brut uniquement (aucun * ni _)
-      - Ne contient que des informations présentes dans le résumé source
+      Une légende Instagram prête à publier, structurée en 6 sections séparées par des lignes vides :
+      1. Une accroche en première ligne, sans emoji, ≤150 caractères.
+      2. Un contexte ouvert par 📜.
+      3. Une liste « Ce qui change » avec des lignes ✅.
+      4. Un impact concret ouvert par 👥.
+      5. Une ligne de date au format « 📅 Publié le jour mois année ».
+      6. Un bloc final de 5 à 10 hashtags séparé du corps par une ligne vide.
+
+      Contraintes : 3 à 6 emojis au total, ≤2200 caractères, texte brut (aucun * ni _),
+      aucun appel à l'action, aucune mention des signataires, et uniquement des informations
+      présentes dans le résumé source.

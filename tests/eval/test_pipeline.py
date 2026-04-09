@@ -151,6 +151,58 @@ def test_caption_no_formatting(caption_output, langfuse_client, trace_id):
     assert passed, "Caption contains formatting characters (* or _)"
 
 
+def test_caption_hook_no_emoji(caption_output, langfuse_client, trace_id):
+    """Verify the first line (hook) is plain text and ≤150 chars."""
+    text = caption_output.raw
+    first_line = text.split("\n", 1)[0].strip()
+    has_emoji = bool(EMOJI_PATTERN.search(first_line))
+    within_length = len(first_line) <= 150
+    passed = not has_emoji and within_length
+
+    score_programmatic(
+        langfuse_client,
+        trace_id,
+        "caption_hook_no_emoji",
+        passed,
+        f"len={len(first_line)}, has_emoji={has_emoji}",
+    )
+    assert passed, (
+        f"Hook line invalid: len={len(first_line)} (max 150), has_emoji={has_emoji}"
+    )
+
+
+def test_caption_paragraph_breaks(caption_output, langfuse_client, trace_id):
+    """Verify the caption is broken into sections by blank lines."""
+    text = caption_output.raw
+    breaks = text.count("\n\n")
+    passed = breaks >= 4
+
+    score_programmatic(
+        langfuse_client,
+        trace_id,
+        "caption_paragraph_breaks",
+        passed,
+        f"blank_line_count={breaks}",
+    )
+    assert passed, f"Caption lacks section breaks: {breaks} blank lines (min 4)"
+
+
+def test_caption_emoji_ceiling(caption_output, langfuse_client, trace_id):
+    """Verify the caption stays under the emoji ceiling (3-6 recommended, 8 max)."""
+    text = caption_output.raw
+    count = sum(len(match) for match in EMOJI_PATTERN.findall(text))
+    passed = count <= 8
+
+    score_programmatic(
+        langfuse_client,
+        trace_id,
+        "caption_emoji_ceiling",
+        passed,
+        f"emoji_count={count}",
+    )
+    assert passed, f"Caption has too many emojis: {count} (max 8, 3-6 recommended)"
+
+
 # ---------------------------------------------------------------------------
 # LLM-as-judge (Claude Opus)
 # ---------------------------------------------------------------------------
