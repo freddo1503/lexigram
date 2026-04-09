@@ -7,11 +7,25 @@ import boto3
 from crewai import LLM, Agent
 from crewai.tools import BaseTool
 from mistralai import Mistral
+from mistralai.utils.retries import BackoffStrategy, RetryConfig
 from PIL import Image
 from pydantic import BaseModel
 
 from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
+
+# Retry up to ~5 min total on 429/5xx with exponential backoff.
+# SDK automatically retries on [429, 500, 502, 503, 504].
+_MISTRAL_RETRY = RetryConfig(
+    strategy="backoff",
+    backoff=BackoffStrategy(
+        initial_interval=1000,  # 1s
+        max_interval=60000,  # 60s cap
+        exponent=2.0,
+        max_elapsed_time=300000,  # 5 min total
+    ),
+    retry_connection_errors=True,
+)
 
 
 class ImagePromptSchema(BaseModel):
@@ -35,7 +49,7 @@ class MistralImageTool(BaseTool):
         if not image_description:
             return "Image description is required."
 
-        client = Mistral(api_key=settings.mistral_api_key)
+        client = Mistral(api_key=settings.mistral_api_key, retry_config=_MISTRAL_RETRY)
 
         # Create an agent with image generation tool
         agent = client.beta.agents.create(
