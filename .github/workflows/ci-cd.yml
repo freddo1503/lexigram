@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: self-hosted
@@ -43,7 +46,7 @@ jobs:
           path: htmlcov/
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa  # v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
