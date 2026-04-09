@@ -14,7 +14,7 @@ from crewai import Task
 from crewai.lite_agent import LiteAgentOutput
 from crewai.tasks.task_output import TaskOutput
 
-from app.config import agents_config
+from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
 from app.text_utils import EMOJI_PATTERN
 
@@ -52,6 +52,23 @@ text_summary = Task(
 )
 
 
+def _s3_image_exists(image_url: str) -> bool:
+    """Check if an image actually exists at the given S3 URL."""
+    import boto3
+    from botocore.exceptions import ClientError
+
+    bucket = settings.s3_bucket_name
+    if not bucket or bucket not in image_url:
+        return False
+    # Extract S3 key from URL: https://<bucket>.s3.<region>.amazonaws.com/<key>
+    try:
+        key = image_url.split(".amazonaws.com/", 1)[1]
+        boto3.client("s3").head_object(Bucket=bucket, Key=key)
+        return True
+    except (ClientError, IndexError):
+        return False
+
+
 def validate_image_payload(
     output: TaskOutput | LiteAgentOutput,
 ) -> Tuple[bool, Any]:
@@ -65,6 +82,11 @@ def validate_image_payload(
         return False, (
             "L'URL de l'image ou la description est vide. "
             "Utilisez l'outil 'Mistral Image Tool' pour générer l'image."
+        )
+    if not _s3_image_exists(payload.image_url):
+        return False, (
+            "L'image n'existe pas dans S3. L'URL a été inventée. "
+            "Vous DEVEZ utiliser l'outil 'Mistral Image Tool' pour générer l'image."
         )
     return True, output
 
