@@ -48,23 +48,26 @@ def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
     tool = MistralImageTool()
     with (
         patch("app.agents.lex_pictor.settings") as mock_settings,
+        patch("app.models.lex_pictor.settings") as mock_model_settings,
         patch("app.agents.lex_pictor.Image") as mock_image,
     ):
         mock_settings.mistral_api_key = "test-key"
         mock_settings.s3_bucket_name = "test-bucket"
         mock_settings.mistral_image_model = "mistral-medium-latest"
         mock_settings.aws_region = "eu-west-3"
+        mock_model_settings.s3_bucket_name = "test-bucket"
+        mock_model_settings.aws_region = "eu-west-3"
         # Mock PIL Image.open().convert().save() chain
         mock_img = MagicMock()
         mock_image.open.return_value.convert.return_value = mock_img
         mock_img.save.side_effect = lambda buf, fmt, **kw: buf.write(b"fake-jpeg-data")
         result = tool._run(image_description="A legal scene")
 
-    assert isinstance(result, str)
-    payload = ImagePayload.model_validate_json(result)
-    assert "test-bucket" in payload.image_url
-    assert payload.image_url.endswith(".jpg")
-    assert payload.image_description == "A legal scene"
+        assert isinstance(result, str)
+        payload = ImagePayload.model_validate_json(result)
+        assert "test-bucket" in payload.image_url
+        assert payload.image_url.endswith(".jpg")
+        assert payload.image_description == "A legal scene"
 
     mock_s3_client.put_object.assert_called_once()
     call_kwargs = mock_s3_client.put_object.call_args[1]

@@ -14,7 +14,7 @@ from crewai import Task
 from crewai.lite_agent import LiteAgentOutput
 from crewai.tasks.task_output import TaskOutput
 
-from app.config import agents_config, settings
+from app.config import agents_config
 from app.models.lex_pictor import ImagePayload
 from app.text_utils import EMOJI_PATTERN
 
@@ -56,18 +56,15 @@ def validate_image_payload(
     output: TaskOutput | LiteAgentOutput,
 ) -> Tuple[bool, Any]:
     if not output.pydantic:
-        return False, "L'output n'est pas au format attendu (ImagePayload)"
-    payload = cast(ImagePayload, output.pydantic)
-    if not payload.image_url:
-        return False, "L'URL de l'image est vide"
-    if not payload.image_description:
-        return False, "La description de l'image est vide"
-    # Reject hallucinated URLs — must come from our S3 bucket
-    bucket = settings.s3_bucket_name or ""
-    if bucket and bucket not in payload.image_url:
         return False, (
-            f"L'URL de l'image ne provient pas du bucket S3 configuré ({bucket}). "
-            "Utilisez l'outil Mistral Image Tool pour générer l'image."
+            "L'output n'est pas au format attendu (ImagePayload). "
+            "Utilisez l'outil 'Mistral Image Tool' pour générer l'image."
+        )
+    payload = cast(ImagePayload, output.pydantic)
+    if not payload.image_url or not payload.image_description:
+        return False, (
+            "L'URL de l'image ou la description est vide. "
+            "Utilisez l'outil 'Mistral Image Tool' pour générer l'image."
         )
     return True, output
 
@@ -75,7 +72,7 @@ def validate_image_payload(
 image_generation = Task(
     name=image_task_config["name"],
     description=image_task_config["description"],
-    expected_output=ImagePayload(image_url="", image_description="").model_dump_json(),
+    expected_output='{"image_url": "https://<bucket>.s3.<region>.amazonaws.com/images/<uuid>.jpg", "image_description": "<description>"}',
     context=[text_summary],
     agent=None,
     output_pydantic=ImagePayload,
