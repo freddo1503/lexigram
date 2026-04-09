@@ -101,7 +101,10 @@ class Publisher:
         """Create a media object on Instagram."""
         media_payload = MediaPayload(image_url=image_url, caption=caption)
         media_url = f"{self.instagram_graph_url}/{self.ig_user_id}/media"
-        params = {"access_token": self.access_token}
+        params = {
+            "access_token": self.access_token,
+            **media_payload.model_dump(mode="json"),
+        }
 
         logger.info(
             "Creating Instagram media object with caption: %s",
@@ -113,7 +116,6 @@ class Publisher:
             media_url,
             "media creation",
             params=params,
-            json=media_payload.model_dump(mode="json"),
         )
 
         try:
