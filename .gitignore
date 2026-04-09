@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 /.venv/
 /.idea/
 __pycache__/
@@ -11,3 +13,18 @@ node_modules/
 build/
 docker-compose.override.yml
 .claude/plans/
+
+# Credentials / secrets
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+.aws/credentials
+
+# Infrastructure state
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
