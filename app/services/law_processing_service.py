@@ -21,10 +21,14 @@ logger = logging.getLogger(__name__)
 
 class LawProcessingService:
     def __init__(self, dynamo_client: DynamoDBClient):
+        if settings.instagram_access_token is None:
+            raise ValueError(
+                "INSTAGRAM_ACCESS_TOKEN is required to publish to Instagram"
+            )
         self.dynamo_client = dynamo_client
         self.loda_api = Loda(get_api_client())
         self.publisher = Publisher(
-            access_token=settings.instagram_access_token,
+            access_token=settings.instagram_access_token.get_secret_value(),
             api_version=settings.instagram_api_version,
         )
 

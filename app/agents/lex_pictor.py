@@ -51,7 +51,12 @@ class MistralImageTool(BaseTool):
         if not image_description:
             return "Image description is required."
 
-        client = Mistral(api_key=settings.mistral_api_key, retry_config=_MISTRAL_RETRY)
+        api_key = (
+            settings.mistral_api_key.get_secret_value()
+            if settings.mistral_api_key
+            else None
+        )
+        client = Mistral(api_key=api_key, retry_config=_MISTRAL_RETRY)
 
         # Create an agent with image generation tool
         agent = client.beta.agents.create(
@@ -125,9 +130,11 @@ class LexPictor(Agent):
             backstory=agent_config["backstory"],
             llm=LLM(
                 model=settings.default_llm_model,
-                api_key=settings.mistral_api_key,
+                api_key=settings.mistral_api_key.get_secret_value()
+                if settings.mistral_api_key
+                else None,
             ),
             tools=[MistralImageTool()],
             allow_delegation=False,
-            verbose=True,
+            verbose=settings.log_level == "DEBUG",
         )

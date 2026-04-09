@@ -17,8 +17,10 @@ class LexMarker(Agent):
             backstory=agent_config["backstory"],
             llm=LLM(
                 model=settings.default_llm_model,
-                api_key=settings.mistral_api_key,
+                api_key=settings.mistral_api_key.get_secret_value()
+                if settings.mistral_api_key
+                else None,
             ),
             allow_delegation=False,
-            verbose=True,
+            verbose=settings.log_level == "DEBUG",
         )

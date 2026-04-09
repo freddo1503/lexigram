@@ -8,7 +8,7 @@ from typing import Any, Optional, Tuple
 import boto3
 import dotenv
 import yaml
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
@@ -77,12 +77,14 @@ class LexigramSettings(BaseSettings):
     legifrance_client_id: Optional[str] = Field(
         default=None, description="Legifrance API client ID"
     )
-    legifrance_client_secret: Optional[str] = Field(
+    legifrance_client_secret: Optional[SecretStr] = Field(
         default=None, description="Legifrance API client secret"
     )
 
     # AI configuration
-    mistral_api_key: Optional[str] = Field(default=None, description="Mistral API key")
+    mistral_api_key: Optional[SecretStr] = Field(
+        default=None, description="Mistral API key"
+    )
     default_llm_model: str = Field(
         default="mistral/mistral-large-latest",
         description="Default LLM model for CrewAI agents",
@@ -93,13 +95,13 @@ class LexigramSettings(BaseSettings):
     )
 
     # Instagram configuration
-    instagram_access_token: Optional[str] = Field(
+    instagram_access_token: Optional[SecretStr] = Field(
         default=None, description="Instagram long-lived user access token"
     )
     instagram_app_id: Optional[str] = Field(
         default=None, description="Instagram App ID"
     )
-    instagram_app_secret: Optional[str] = Field(
+    instagram_app_secret: Optional[SecretStr] = Field(
         default=None, description="Instagram App Secret"
     )
     instagram_api_version: str = Field(
@@ -123,17 +125,6 @@ class LexigramSettings(BaseSettings):
         if v.upper() not in valid_levels:
             raise ValueError(f"Invalid log level: {v}. Must be one of {valid_levels}")
         return v.upper()
-
-    def model_post_init(self, __context: Any) -> None:
-        """Export credentials to env vars for libraries that read os.environ directly."""
-        if self.legifrance_client_id:
-            os.environ.setdefault("LEGIFRANCE_CLIENT_ID", self.legifrance_client_id)
-        if self.legifrance_client_secret:
-            os.environ.setdefault(
-                "LEGIFRANCE_CLIENT_SECRET", self.legifrance_client_secret
-            )
-        if self.mistral_api_key:
-            os.environ.setdefault("MISTRAL_API_KEY", self.mistral_api_key)
 
     @classmethod
     def settings_customise_sources(
@@ -176,15 +167,13 @@ class SettingsManager:
         try:
             refreshed = get_refreshed_instagram_token(
                 app_id=s.instagram_app_id,
-                app_secret=s.instagram_app_secret,
-                current_token=s.instagram_access_token,
+                app_secret=s.instagram_app_secret.get_secret_value(),
+                current_token=s.instagram_access_token.get_secret_value(),
             )
-            s.instagram_access_token = refreshed
+            s.instagram_access_token = SecretStr(refreshed)
             logger.info("Instagram token validated/refreshed successfully")
-        except Exception as e:
-            logger.warning(
-                "Instagram token refresh failed, using existing token: %s", e
-            )
+        except Exception:
+            logger.exception("Instagram token refresh failed, using existing token")
 
     @property
     def settings(self) -> LexigramSettings:
@@ -194,7 +183,16 @@ class SettingsManager:
     @cached_property
     def api_config(self) -> ApiConfig:
         """Get the API config instance, creating it on first access."""
-        return ApiConfig.from_env()
+        s = self._settings
+        if not (s.legifrance_client_id and s.legifrance_client_secret):
+            raise ValueError(
+                "Legifrance credentials missing: LEGIFRANCE_CLIENT_ID and "
+                "LEGIFRANCE_CLIENT_SECRET must be set."
+            )
+        return ApiConfig(
+            client_id=s.legifrance_client_id,
+            client_secret=s.legifrance_client_secret.get_secret_value(),
+        )
 
     @cached_property
     def api_client(self) -> LegifranceClient:

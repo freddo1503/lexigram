@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic import SecretStr
 
 # Mock boto3 before importing any modules that use it
 with patch("boto3.client"):
@@ -51,7 +52,7 @@ def test_mistral_image_tool_run_success(mock_mistral_client, mock_s3_client):
         patch("app.models.lex_pictor.settings") as mock_model_settings,
         patch("app.agents.lex_pictor.Image") as mock_image,
     ):
-        mock_settings.mistral_api_key = "test-key"
+        mock_settings.mistral_api_key = SecretStr("test-key")
         mock_settings.s3_bucket_name = "test-bucket"
         mock_settings.mistral_image_model = "mistral-medium-latest"
         mock_settings.aws_region = "eu-west-3"
@@ -87,8 +88,9 @@ def test_mistral_image_tool_run_missing_description(mock_mistral):
 @patch("app.agents.lex_pictor.agents_config")
 @patch("app.agents.lex_pictor.settings")
 def test_lex_pictor_initialization(mock_settings, mock_agents_config):
-    mock_settings.mistral_api_key = "test_api_key"
+    mock_settings.mistral_api_key = SecretStr("test_api_key")
     mock_settings.default_llm_model = "mistral/mistral-large-latest"
+    mock_settings.log_level = "INFO"
 
     mock_agents_config.__getitem__.return_value = {
         "lex_pictor": {
@@ -107,7 +109,7 @@ def test_lex_pictor_initialization(mock_settings, mock_agents_config):
     assert len(agent.tools) == 1
     assert isinstance(agent.tools[0], MistralImageTool)
     assert agent.allow_delegation is False
-    assert agent.verbose is True
+    assert agent.verbose is False
 
 
 @patch("app.agents.lex_pictor.Mistral")
@@ -118,7 +120,7 @@ def test_mistral_image_tool_run_api_error(mock_mistral):
 
     tool = MistralImageTool()
     with patch("app.agents.lex_pictor.settings") as mock_settings:
-        mock_settings.mistral_api_key = "test-key"
+        mock_settings.mistral_api_key = SecretStr("test-key")
         with pytest.raises(Exception, match="API Error"):
             tool._run(image_description="A legal scene")
 
@@ -139,7 +141,7 @@ def test_mistral_image_tool_run_no_file_id(mock_mistral_client):
 
     tool = MistralImageTool()
     with patch("app.agents.lex_pictor.settings") as mock_settings:
-        mock_settings.mistral_api_key = "test-key"
+        mock_settings.mistral_api_key = SecretStr("test-key")
         result = tool._run(image_description="A legal scene")
 
     assert result == "Image generation returned no file."
