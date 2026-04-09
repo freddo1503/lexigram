@@ -60,7 +60,7 @@ class InstagramTokenManager:
             )
             return response.status_code == 200
         except Exception as e:
-            logger.warning(f"Token validation failed: {e}")
+            logger.warning("Token validation failed: %s", type(e).__name__)
             return False
 
     def get_token_info(self) -> Optional[Dict[str, Any]]:
@@ -79,7 +79,7 @@ class InstagramTokenManager:
             if response.status_code == 200:
                 return response.json()
         except Exception as e:
-            logger.warning(f"Failed to get token info: {e}")
+            logger.warning("Failed to get token info: %s", type(e).__name__)
         return None
 
     def refresh_long_lived_token(self) -> Optional[str]:
@@ -124,7 +124,7 @@ class InstagramTokenManager:
                 return self._fallback_facebook_refresh()
 
         except Exception as e:
-            logger.error(f"Error refreshing Instagram token: {e}")
+            logger.error("Error refreshing Instagram token: %s", type(e).__name__)
             # Try fallback method
             return self._fallback_facebook_refresh()
 
@@ -164,7 +164,7 @@ class InstagramTokenManager:
                 )
 
         except Exception as e:
-            logger.error(f"Error in fallback token refresh: {e}")
+            logger.error("Error in fallback token refresh: %s", type(e).__name__)
 
         return None
 
@@ -195,7 +195,9 @@ class InstagramTokenManager:
             return True
 
         except ClientError as e:
-            logger.error(f"Failed to update token in Secrets Manager: {e}")
+            logger.error(
+                "Failed to update token in Secrets Manager: %s", type(e).__name__
+            )
             return False
 
     def ensure_valid_token(self) -> str:
@@ -310,7 +312,7 @@ class SystemUserTokenGenerator:
                 raise Exception(f"App token request failed: {error_msg}")
 
         except Exception as e:
-            logger.error(f"Error getting app access token: {e}")
+            logger.error("Error getting app access token: %s", type(e).__name__)
             raise
 
     def list_business_managers(self, app_token: str) -> List[Dict[str, Any]]:
@@ -344,7 +346,7 @@ class SystemUserTokenGenerator:
                 return []
 
         except Exception as e:
-            logger.error(f"Error listing business managers: {e}")
+            logger.error("Error listing business managers: %s", type(e).__name__)
             return []
 
     def create_system_user(
@@ -382,7 +384,7 @@ class SystemUserTokenGenerator:
                 return None
 
         except Exception as e:
-            logger.error(f"Error creating system user: {e}")
+            logger.error("Error creating system user: %s", type(e).__name__)
             return None
 
     def generate_system_user_token(
@@ -425,7 +427,7 @@ class SystemUserTokenGenerator:
                 return None
 
         except Exception as e:
-            logger.error(f"Error generating system user token: {e}")
+            logger.error("Error generating system user token: %s", type(e).__name__)
             return None
 
     def get_instagram_business_account(self, token: str) -> Optional[str]:
@@ -473,7 +475,9 @@ class SystemUserTokenGenerator:
                 return None
 
         except Exception as e:
-            logger.error(f"Error getting Instagram business account: {e}")
+            logger.error(
+                "Error getting Instagram business account: %s", type(e).__name__
+            )
             return None
 
     def create_permanent_instagram_token(
@@ -541,7 +545,9 @@ class SystemUserTokenGenerator:
             return permanent_token
 
         except Exception as e:
-            logger.error(f"Error creating permanent Instagram token: {e}")
+            logger.error(
+                "Error creating permanent Instagram token: %s", type(e).__name__
+            )
             return None
 
 
@@ -614,6 +620,6 @@ def get_refreshed_instagram_token(
     try:
         return manager.ensure_valid_token()
     except Exception as e:
-        logger.warning(f"Token management failed: {e}")
+        logger.warning("Token management failed: %s", type(e).__name__)
         logger.info("Creating new permanent token as fallback...")
         return create_instagram_token(app_id, app_secret)
