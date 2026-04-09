@@ -11,10 +11,24 @@ logger = Logger(service="lexigram")
 
 @logger.inject_lambda_context
 def handler(event: EventBridgeEvent, context: LambdaContext):
-    logger.info("Lambda function started with event: %s", event)
+    logger.info(
+        "Lambda function started",
+        extra={
+            "event_source": event.get("source"),
+            "event_time": event.get("time"),
+        },
+    )
     try:
         main()
         return {"statusCode": 200, "body": json.dumps("Success")}
-    except Exception as e:
-        logger.error("Error occurred: %s", str(e))
-        return {"statusCode": 500, "body": json.dumps(str(e))}
+    except Exception:
+        logger.exception("Lexigram handler failed")
+        return {
+            "statusCode": 500,
+            "body": json.dumps(
+                {
+                    "error": "internal_server_error",
+                    "request_id": context.aws_request_id,
+                }
+            ),
+        }
