@@ -14,15 +14,17 @@ from pydantic import BaseModel
 from app.config import agents_config, settings
 from app.models.lex_pictor import ImagePayload
 
-# Retry up to ~5 min total on 429/5xx with exponential backoff.
+# Retry up to ~90s on 429/5xx with exponential backoff.
 # SDK automatically retries on [429, 500, 502, 503, 504].
+# Kept short because Mistral image rate limits are persistent; long waits
+# just eat Lambda timeout without recovering.
 _MISTRAL_RETRY = RetryConfig(
     strategy="backoff",
     backoff=BackoffStrategy(
-        initial_interval=1000,  # 1s
-        max_interval=60000,  # 60s cap
+        initial_interval=2000,  # 2s
+        max_interval=30000,  # 30s cap
         exponent=2.0,
-        max_elapsed_time=300000,  # 5 min total
+        max_elapsed_time=90000,  # 90s total
     ),
     retry_connection_errors=True,
 )

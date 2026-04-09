@@ -99,7 +99,7 @@ image_generation = Task(
     context=[text_summary],
     agent=None,
     guardrail=validate_image_payload,
-    guardrail_max_retries=3,
+    guardrail_max_retries=1,
 )
 
 
