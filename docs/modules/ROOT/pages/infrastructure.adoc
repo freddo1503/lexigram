@@ -17,10 +17,10 @@ Infrastructure is defined in `infra/` using AWS CDK (Python).
 |`LawPostsDynamoDBTable` -- partition key `textId` (STRING), on-demand billing, DESTROY removal policy
 
 |*Secrets Manager*
-|`SecretsManagerConstruct` -- loads `.env` file, stores as JSON under secret name `my-env-secrets`
+|`aws_secretsmanager.Secret.from_secret_name_v2` -- imports the existing `my-env-secrets` by name (read-only reference, never mutated by CDK)
 
 |*Lambda Function*
-|`DockerImageFunction` -- Python 3.12 base image, 512 MB memory, 4-minute timeout, 1-month log retention
+|`DockerImageFunction` -- Python 3.12 base image, 512 MB memory, 10-minute timeout, 1-month log retention
 
 |*EventBridge Rule*
 |`cron(30 11 ? * MON-FRI)` -- weekdays at 11:30 UTC
@@ -35,15 +35,20 @@ Infrastructure is defined in `infra/` using AWS CDK (Python).
 * *Handler:* `app.handler.handler`
 * *Docker:* Built from project root `Dockerfile`
 
-NOTE: `DYNAMO_TABLE_NAME` is not set as a Lambda environment variable in the CDK stack. It is loaded from AWS Secrets Manager at runtime (via `.env` -> Secrets Manager at deploy time).
+=== Secrets Bootstrap
 
-=== Secrets Manager Construct
+The `my-env-secrets` secret must exist in AWS Secrets Manager (region `eu-west-3`) *before* `cdk deploy` runs. CDK imports it by name and grants the Lambda execution role `secretsmanager:GetSecretValue` -- it never creates, updates, or reads the secret values during deploy.
 
-`SecretsManagerConstruct(scope, id, env_file_path, secret_name)`:
+Populate or rotate the secret out-of-band, for example:
 
-* Reads `.env` file and converts to JSON string
-* Creates or updates the secret in AWS Secrets Manager
-* Used at deploy time to sync local secrets to cloud
+[source,bash]
+----
+aws secretsmanager put-secret-value \
+  --secret-id my-env-secrets \
+  --secret-string file://secrets.json
+----
+
+`secrets.json` is a flat JSON object keyed by field name (e.g. `MISTRAL_API_KEY`, `LEGIFRANCE_CLIENT_ID`, `LEGIFRANCE_CLIENT_SECRET`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_APP_SECRET`). `AWSSecretsManagerSource` in `app/config.py` reads this JSON at Lambda cold start.
 
 == CDK App Entry
 

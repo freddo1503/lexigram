@@ -1,9 +1,7 @@
-import json
 import platform
 from pathlib import Path
 
 import aws_cdk
-import boto3
 from aws_cdk import (
     aws_events,
     aws_events_targets,
@@ -11,9 +9,9 @@ from aws_cdk import (
     aws_lambda,
     aws_logs,
     aws_s3,
+    aws_secretsmanager,
 )
 from constructs import Construct
-from dotenv import dotenv_values
 from dynamo_db_table import LawPostsDynamoDBTable
 
 
@@ -50,8 +48,8 @@ class Lexigram(aws_cdk.Stack):
             )
         )
 
-        secret = SecretsManagerConstruct(
-            self, "LexigramEnvSecrets", secret_name="my-env-secrets"
+        env_secret = aws_secretsmanager.Secret.from_secret_name_v2(
+            self, "LexigramEnvSecrets", "my-env-secrets"
         )
 
         current_arch = platform.machine().lower()
@@ -59,10 +57,6 @@ class Lexigram(aws_cdk.Stack):
             aws_lambda.Architecture.ARM_64
             if current_arch in ["arm64", "aarch64"]
             else aws_lambda.Architecture.X86_64
-        )
-
-        print(
-            f"Detected architecture: {current_arch}, using Lambda architecture: {lambda_arch}"
         )
 
         lambda_function = aws_lambda.DockerImageFunction(
@@ -87,7 +81,7 @@ class Lexigram(aws_cdk.Stack):
         lambda_function.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["secretsmanager:GetSecretValue"],
-                resources=[secret.secret_arn] if secret.secret_arn else [],
+                resources=[env_secret.secret_arn],
             )
         )
 
@@ -102,51 +96,3 @@ class Lexigram(aws_cdk.Stack):
             lambda_function  # ty: ignore[invalid-argument-type]
         )
         rule.add_target(target)  # ty: ignore[invalid-argument-type]
-
-
-class SecretsManagerConstruct(Construct):
-    def __init__(
-        self,
-        scope: Construct,
-        id: str,
-        env_file_path: Path = Path(".env"),
-        secret_name: str = "my-env-secrets",
-    ):
-        super().__init__(scope, id)
-        self.secret_arn = None
-
-        env_vars = dotenv_values(env_file_path)
-
-        if env_vars:
-            secret_value = json.dumps(env_vars)
-            self.secret_arn = self.create_or_update_secret(secret_name, secret_value)
-        else:
-            print(f"No .env file or empty — skipping secret update for '{secret_name}'")
-            self.secret_arn = self.get_secret_arn(secret_name)
-
-    def get_secret_arn(self, secret_name: str) -> str | None:
-        """Look up the ARN of an existing secret without modifying it."""
-        client = boto3.client("secretsmanager")
-        try:
-            response = client.describe_secret(SecretId=secret_name)
-            return response["ARN"]
-        except Exception:
-            return None
-
-    def create_or_update_secret(
-        self, secret_name: str, secret_value: str
-    ) -> str | None:
-        client = boto3.client("secretsmanager")
-
-        try:
-            response = client.describe_secret(SecretId=secret_name)
-            client.put_secret_value(SecretId=secret_name, SecretString=secret_value)
-            print(f"Updated existing secret: {secret_name}")
-        except client.exceptions.ResourceNotFoundException:
-            response = client.create_secret(Name=secret_name, SecretString=secret_value)
-            print(f"Created new secret: {secret_name}")
-        except Exception as e:
-            print(f"An error occurred while managing the secret: {e}")
-            return None
-
-        return response["ARN"]
