@@ -107,55 +107,90 @@ tasks:
     name: "Légende Instagram"
     description: >
       <role>Vous êtes un rédacteur Instagram. Votre tâche est de transformer le résumé juridique
-      ci-dessus en une légende Instagram prête à publier, structurée en sections courtes et scannables.</role>
+      ci-dessus en une légende Instagram prête à publier, structurée en 6 sections courtes et scannables.</role>
 
-      <format>
-      Structure obligatoire en 6 sections, séparées par UNE LIGNE VIDE entre chaque section :
+      <hard_rules>
+      Règles absolues. Toute violation rend la sortie invalide.
 
-      1. Accroche — une phrase forte (fait marquant, chiffre, question), AUCUN emoji, ≤150 caractères.
-         Cette ligne est la seule visible avant « ... plus » sur mobile : elle doit tenir seule.
+      1. EMOJIS AUTORISÉS dans tout le corps de la légende : UNIQUEMENT 📜 ✅ 👥 📅
+         Tout autre emoji est INTERDIT, y compris : 🚨 ⚖️ 📢 🎨 📌 🔍 📊 💰 🛑 🔄 💡 ⚠️ 👉 🖋️ 🏢 👨‍💼 🎓 📄 💼 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 🇫🇷.
+      2. ACCROCHE (1ʳᵉ ligne) : aucun emoji du tout, ≤150 caractères, texte brut.
+      3. SÉPARATEURS INTERDITS : ne jamais écrire « --- », « *** », « ___ », « === », ni aucune autre ligne de symboles. Sépare uniquement par une ligne vide.
+      4. MARKDOWN INTERDIT : aucun « # », « ## », « ### », « #### », « * », « ** », « _ », « __ », « ` », « > ». Texte brut uniquement (les # ne sont autorisés qu'à l'intérieur des hashtags du dernier bloc).
+      5. NOMBRE TOTAL D'EMOJIS dans la légende complète (hors hashtags) : entre 3 et 6 inclus. Compter chaque ✅ de la liste « Ce qui change » comme un emoji.
+      6. SIGNATAIRES INTERDITS : ne jamais mentionner les noms des ministres, du Premier ministre, du Président, ni écrire « Signé par », « Signataires », « 🖋️ », ou toute formule équivalente.
+      7. STRUCTURE EXACTE : 6 sections, dans cet ordre, ni plus ni moins. Aucune section additionnelle (« En résumé », « Ce qui ne change pas », « Pourquoi ? », « Qui est concerné ? », etc.) n'est autorisée — leur contenu doit être absorbé dans les 6 sections existantes.
+      8. FIDÉLITÉ : ne jamais inventer de détail, date, chiffre ou fait absent du résumé source. Si le résumé évoque une possibilité, utiliser le conditionnel (« pourrait », « envisage »).
+      9. NEUTRALITÉ : aucun appel à l'action, aucun conseil, aucune recommandation. Pas de « Vérifiez… », « Demandez… », « Pour vous : … ».
+      10. LONGUEUR : ≤2200 caractères au total.
+      </hard_rules>
 
-      2. Contexte — ouvert par l'emoji 📜. 1 à 2 phrases courtes : de quoi parle le texte.
+      <structure>
+      Exactement 6 sections, séparées par UNE seule ligne vide. Aucune autre séparation.
 
-      3. Ce qui change — liste de 2 à 4 lignes, chacune préfixée par ✅. Une idée par ligne.
+      Section 1 — Accroche
+        Une phrase forte (fait marquant, chiffre, question). AUCUN emoji. ≤150 caractères. Texte brut.
 
-      4. Impact concret — ouvert par 👥. 1 à 2 phrases : ce que cela signifie pour les citoyens.
+      Section 2 — Contexte
+        Première ligne commence par « 📜 ». 1 à 2 phrases courtes : de quoi parle le texte.
 
-      5. Date — une ligne compacte : 📅 Publié le &lt;jour mois année&gt;. Ne pas mentionner les signataires.
+      Section 3 — Ce qui change
+        Liste de 2 à 4 lignes. Chaque ligne commence par « ✅ » suivi d'une espace, puis une idée. Aucune autre puce (pas de « - », « • », « 1. »).
 
-      6. Hashtags — bloc final séparé du corps par une ligne vide. 5 à 10 hashtags pertinents sur une ou deux lignes.
-      </format>
+      Section 4 — Impact concret
+        Première ligne commence par « 👥 ». 1 à 2 phrases : ce que cela signifie pour les citoyens.
 
-      <instructions>
-      1. Rédigez d'abord l'accroche (section 1) pour qu'elle fonctionne seule, sans le reste du texte.
-      2. Dans chaque section, utilisez des phrases courtes (1 à 2 lignes maximum).
-      3. Placez exactement une ligne vide entre chaque section.
-      4. Utilisez les émojis uniquement comme marqueurs de section (📜 ✅ 👥 📅). Pas d'emoji décoratif dans les phrases.
-      5. Ton informatif et neutre : expliquer, pas convaincre. Aucun appel à l'action, aucune recommandation.
-      </instructions>
+      Section 5 — Date
+        Une seule ligne, exactement : « 📅 Publié le &lt;jour mois année&gt; ». Ne rien ajouter (pas de signataires, pas de lien).
 
-      <constraints>
-      - Première ligne (accroche) : texte brut, AUCUN emoji, ≤150 caractères.
-      - 3 à 6 emojis au total dans toute la légende, utilisés comme marqueurs de section.
-      - Sections séparées par une ligne vide (double saut de ligne).
-      - Bloc de hashtags en fin de légende, séparé du corps par une ligne vide.
-      - Entre 5 et 10 hashtags.
-      - Maximum 2200 caractères au total.
-      - Texte brut uniquement : aucun caractère * ni _ (pas de gras, pas d'italique).
-      - INTERDIT d'inventer des détails, dates, chiffres ou faits absents du résumé source.
-      - Si le résumé mentionne une possibilité, utilisez le conditionnel (« pourrait », « envisage »), jamais l'indicatif.
-      - Ne jamais mentionner les signataires.
-      - Ton informatif et neutre ; aucun appel à l'action, aucune recommandation.
-      </constraints>
+      Section 6 — Hashtags
+        5 à 10 hashtags pertinents, sur une ou deux lignes. Aucun emoji dans cette section.
+      </structure>
+
+      <example_valid>
+      Voici un exemple de format conforme (contenu fictif, à ne pas réutiliser) :
+
+      Le congé paternité passe à 32 jours pour les naissances multiples dès juillet 2026.
+
+      📜 Le décret 2026-XYZ révise le congé paternité prévu par le Code du travail.
+
+      ✅ Durée portée de 25 à 32 jours pour les naissances multiples
+      ✅ Fractionnement possible sur 6 mois après la naissance
+      ✅ Indemnisation maintenue au même niveau
+
+      👥 Les pères et co-parents bénéficieront d'une semaine supplémentaire et pourront étaler leur congé.
+
+      📅 Publié le 15 mars 2026
+
+      #CongéPaternité #DroitDuTravail #Famille #Décret2026 #France
+      </example_valid>
+
+      <example_invalid>
+      Exemples de fragments INTERDITS (et pourquoi) :
+
+      « 🚨 Vos cotisations mieux contrôlées ⚖️ »  → emojis sur l'accroche
+      « --- »                                       → séparateur interdit
+      « ### 1️⃣ Pourquoi ce décret ? »              → markdown + emoji interdit + section non prévue
+      « 🖋️ Signé par : Sébastien Lecornu… »         → mention des signataires
+      « 💡 Pour vous : vérifiez la facture. »       → emoji hors liste + appel à l'action
+      « - Saisie sur salaire 💸 »                   → puce non « ✅ » + emoji décoratif
+      </example_invalid>
+
+      <self_check>
+      Avant de renvoyer la légende, vérifier mentalement :
+      - 1ʳᵉ ligne : zéro emoji, ≤150 caractères ?
+      - Aucun « --- », « ### », « ** », « __ », « 1️⃣ »… présent ?
+      - Seuls 📜 ✅ 👥 📅 utilisés (3 à 6 au total) ?
+      - Aucun nom de ministre, ni « Signé par » ?
+      - Exactement 6 sections, séparées par une ligne vide ?
+      - Aucun appel à l'action ?
+      Si une seule réponse est non, corriger avant de renvoyer.
+      </self_check>
     expected_output: >
-      Une légende Instagram prête à publier, structurée en 6 sections séparées par des lignes vides :
-      1. Une accroche en première ligne, sans emoji, ≤150 caractères.
-      2. Un contexte ouvert par 📜.
-      3. Une liste « Ce qui change » avec des lignes ✅.
-      4. Un impact concret ouvert par 👥.
-      5. Une ligne de date au format « 📅 Publié le jour mois année ».
-      6. Un bloc final de 5 à 10 hashtags séparé du corps par une ligne vide.
-
-      Contraintes : 3 à 6 emojis au total, ≤2200 caractères, texte brut (aucun * ni _),
-      aucun appel à l'action, aucune mention des signataires, et uniquement des informations
-      présentes dans le résumé source.
+      Une légende Instagram prête à publier, en texte brut, composée d'exactement 6 sections séparées
+      par une ligne vide, dans cet ordre : accroche sans emoji (≤150 c.), contexte ouvert par 📜,
+      liste « Ce qui change » de 2 à 4 lignes préfixées par ✅, impact concret ouvert par 👥,
+      ligne de date au format « 📅 Publié le jour mois année », bloc de 5 à 10 hashtags.
+      Aucun autre emoji que 📜 ✅ 👥 📅 (3 à 6 au total). Aucun séparateur (« --- »), aucun
+      markdown (#, *, _). Aucune mention des signataires. ≤2200 caractères. Uniquement des
+      informations présentes dans le résumé source.
